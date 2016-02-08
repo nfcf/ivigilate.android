@@ -1,0 +1,10 @@
+<resources>
+    <string name="title_activity_main">iVigilate</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_website">Website</string>
+    <string name="action_logout">Logout</string>
+
+    <string name="main_service_section_title">Service</string>
+    <string name="main_service_section_button_label">Enable / Disable</string>
+</resources>
