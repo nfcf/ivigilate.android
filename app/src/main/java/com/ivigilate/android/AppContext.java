@@ -14,7 +14,7 @@ import org.acra.annotation.ReportsCrashes;
 //TODO: Going to need to update the ACRA to use a different backend (instead of google forms) as it is no longer supported...
 @ReportsCrashes(formKey = "", mailTo = "nunofcf@gmail.com", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_text)
 public class AppContext extends Application {
-    public static final String SERVER_BASE_URL = "http://192.168.1.14:8000";
+    public static final String SERVER_BASE_URL = "http://dev.ivigilate.com";
 
     public static final int NOTIFICATION_ID = 1;
 

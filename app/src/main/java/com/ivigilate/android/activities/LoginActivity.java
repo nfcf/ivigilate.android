@@ -30,6 +30,7 @@ import android.widget.Toast;
 
 import com.ivigilate.android.AppContext;
 import com.ivigilate.android.BuildConfig;
+import com.ivigilate.android.classes.Rest;
 import com.ivigilate.android.interfaces.IProfileQuery;
 import com.ivigilate.android.interfaces.IVigilateApi;
 import com.ivigilate.android.R;
@@ -97,8 +98,8 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                 mServerView.setText(appContext.settings.getDebugServerAddress());
 
                 if (mServerView.getText().toString().equals("")) mServerView.setText(AppContext.SERVER_BASE_URL);
-                mEmailView.setText("a@b.com");
-                mPasswordView.setText("1");
+                mEmailView.setText("nuno.freire@ivigilate.com");
+                mPasswordView.setText("123");
             } else {
                 mServerView.setText(AppContext.SERVER_BASE_URL);
                 mServerView.setVisibility(View.GONE);
@@ -244,9 +245,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
             TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
             String imei = telephonyManager.getDeviceId();
 
-            RestAdapter restAdapter = new RestAdapter.Builder()
-                    .setEndpoint(serverAddress)
-                    .build();
+            RestAdapter restAdapter = Rest.createAdapter(getApplicationContext(), serverAddress);
             IVigilateApi api = restAdapter.create(IVigilateApi.class);
             Logger.d("Api created, making login call...");
 

@@ -4,11 +4,14 @@ import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 
@@ -22,6 +25,7 @@ import com.ivigilate.android.BuildConfig;
 import com.ivigilate.android.R;
 import com.ivigilate.android.activities.MainActivity;
 import com.ivigilate.android.classes.GPSLocation;
+import com.ivigilate.android.classes.Rest;
 import com.ivigilate.android.interfaces.IVigilateApi;
 import com.ivigilate.android.classes.Sighting;
 import com.ivigilate.android.classes.User;
@@ -63,6 +67,9 @@ public class MainService extends Service implements
     private Thread mApiThread;
     private boolean mAbortApiThread;
 
+    private PowerManager.WakeLock mWakeLock;
+    private WifiManager.WifiLock mWifiLock;
+
     public MainService() {
     }
 
@@ -81,6 +88,9 @@ public class MainService extends Service implements
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
         mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //altBeacon
         mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //kontakt / jaalee
+
+        acquireLocks();
+
         Logger.i("Finished...");
     }
 
@@ -149,9 +159,7 @@ public class MainService extends Service implements
                 try {
                     Logger.d("ApiThread started...");
                     String serverAddress = BuildConfig.DEBUG ? appContext.settings.getDebugServerAddress() : AppContext.SERVER_BASE_URL;
-                    RestAdapter restAdapter = new RestAdapter.Builder()
-                            .setEndpoint(serverAddress)
-                            .build();
+                    RestAdapter restAdapter = Rest.createAdapter(getApplicationContext(), serverAddress);
                     IVigilateApi api = restAdapter.create(IVigilateApi.class);
                     Logger.i("ApiThread is up and running.");
 
@@ -205,6 +213,9 @@ public class MainService extends Service implements
         Logger.d("Started.");
         mAbortApiThread = true;
 
+        Logger.d("Release CPU and Wifi locks...");
+        releaseLocks();
+
         Logger.d("Unbinding bluetooth manager...");
         mBeaconManager.unbind(this);
 
@@ -227,6 +238,34 @@ public class MainService extends Service implements
 
         super.onDestroy();
         Logger.i("Finished.");
+    }
+
+    private void acquireLocks() {
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelock");
+        if(!mWakeLock.isHeld()){
+            mWakeLock.acquire();
+        }
+
+        WifiManager wm = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL, "MyWifiLock");
+        if(!mWifiLock.isHeld()){
+            mWifiLock.acquire();
+        }
+    }
+
+    private void releaseLocks() {
+        if (mWakeLock != null) {
+            if (mWakeLock.isHeld()) {
+                mWakeLock.release();
+            }
+        }
+
+        if (mWifiLock != null) {
+            if (mWifiLock.isHeld()) {
+                mWifiLock.release();
+            }
+        }
     }
 
     protected synchronized void buildGoogleApiAndLocationRequest() {
