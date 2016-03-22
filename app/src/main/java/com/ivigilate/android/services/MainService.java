@@ -332,6 +332,7 @@ public class MainService extends Service implements
                             mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(), mLastKnownLocation.getLatitude()) : null));
                 } else {
                     Logger.d("Skipping packet as a similar one happened less than 1 second ago.");
+                    // TODO: average with previous sighting
                 }
             }
         } catch (Exception ex) {
