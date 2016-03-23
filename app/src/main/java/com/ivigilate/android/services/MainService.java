@@ -292,7 +292,7 @@ public class MainService extends Service implements
         Notification notification = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setColor(getResources().getColor(R.color.material_deep_teal_500))
-                .setContentTitle(getString(R.string.app_name))
+                .setContentTitle(getString(R.string.main_title))
                 .setContentText(getString(R.string.notification_text))
                 .setContentIntent(pendingIntent).build();
 
