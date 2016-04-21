@@ -14,12 +14,12 @@ public class StartStopServiceListener extends BroadcastReceiver {
         Logger.d("Started...");
 
         AppContext appContext = (AppContext) context.getApplicationContext();
-        boolean shouldEnableService = appContext.settings.getServiceEnabled() ^ intent.getBooleanExtra(INTENT_EXTRA_TOGGLE, false);
+        /*boolean shouldEnableService = appContext.settings.getServiceEnabled() ^ intent.getBooleanExtra(INTENT_EXTRA_TOGGLE, false);
         if (shouldEnableService) {
             appContext.startService();
         } else {
             appContext.stopService();
-        }
+        }*/
 
         Logger.i("Finished...");
     }

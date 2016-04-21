@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -15,7 +14,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -25,53 +23,75 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.ivigilate.android.AppContext;
 import com.ivigilate.android.BuildConfig;
-import com.ivigilate.android.classes.Rest;
+import com.ivigilate.android.core.IVigilateManager;
+import com.ivigilate.android.core.classes.User;
+import com.ivigilate.android.core.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.interfaces.IProfileQuery;
-import com.ivigilate.android.interfaces.IVigilateApi;
 import com.ivigilate.android.R;
-import com.ivigilate.android.classes.User;
 import com.ivigilate.android.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
-
 public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     // UI references.
+    private LinearLayout mLLLogin;
+
     private EditText mServerView;
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private Button mBtnStartStop;
+
+    private IVigilateManager mIVigilateManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Logger.d("Started...");
         super.onCreate(savedInstanceState);
 
-        AppContext appContext = ((AppContext)getApplication());
-        if (appContext.settings.getUser() != null) {
-            Logger.d("Skipping login screen as the user is already logged in.");
-            gotoMainActivity();
+        setContentView(R.layout.main_activity);
+
+        mIVigilateManager = IVigilateManager.getInstance(this);
+
+        ImageView ivLogo = (ImageView) findViewById(R.id.ivLogo);
+        ivLogo.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Logger.d("Opening website...");
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(mIVigilateManager.getSettings().getServerAddress()));
+                startActivity(i);
+            }
+        });
+
+        mLLLogin = (LinearLayout) findViewById(R.id.llLogin);
+        mBtnStartStop = (Button) findViewById(R.id.btnStartStop);
+
+        if (mIVigilateManager.getSettings().getUser() != null) {
+            Logger.d("User is already logged in.");
+
+            mLLLogin.setVisibility(View.GONE);
+            mBtnStartStop.setVisibility(View.VISIBLE);
         } else {
-            setContentView(R.layout.login_activity);
+            Logger.d("User is not logged in.");
+
+            mLLLogin.setVisibility(View.VISIBLE);
+            mBtnStartStop.setVisibility(View.GONE);
 
             // Set up the login form.
-            mServerView = (EditText) findViewById(R.id.server);
-            mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+            mServerView = (EditText) findViewById(R.id.etServer);
+            mServerView.setText(mIVigilateManager.getSettings().getServerAddress());
+
+            mEmailView = (AutoCompleteTextView) findViewById(R.id.etEmail);
             populateAutoComplete();
 
-            mPasswordView = (EditText) findViewById(R.id.password);
+            mPasswordView = (EditText) findViewById(R.id.etPassword);
             mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
                 @Override
                 public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -83,25 +103,29 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                 }
             });
 
-            Button emailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-            emailSignInButton.setOnClickListener(new OnClickListener() {
+            Button btnLogin = (Button) findViewById(R.id.btnLogin);
+            btnLogin.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     attemptLogin();
                 }
             });
 
-            mLoginFormView = findViewById(R.id.login_form);
-            mProgressView = findViewById(R.id.login_progress);
+
+            mBtnStartStop.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //attemptLogin();
+                }
+            });
+
+            mLoginFormView = findViewById(R.id.llLogin);
+            mProgressView = findViewById(R.id.pbLogin);
 
             if (BuildConfig.DEBUG) {
-                mServerView.setText(appContext.settings.getDebugServerAddress());
-
-                if (mServerView.getText().toString().equals("")) mServerView.setText(AppContext.SERVER_BASE_URL);
                 mEmailView.setText("nuno.freire@ivigilate.com");
                 mPasswordView.setText("123");
             } else {
-                mServerView.setText(AppContext.SERVER_BASE_URL);
                 mServerView.setVisibility(View.GONE);
             }
             Logger.d("Finished.");
@@ -154,7 +178,7 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
+        //TODO: Replace this with more proper logic
         return email.contains("@");
     }
 
@@ -167,10 +191,6 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     public void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -190,12 +210,6 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
                     mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
             });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
     }
 
     @Override
@@ -242,55 +256,32 @@ public class LoginActivity extends Activity implements LoaderCallbacks<Cursor> {
         try {
             Logger.d("Started...");
 
-            TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-            String imei = telephonyManager.getDeviceId();
-
-            RestAdapter restAdapter = Rest.createAdapter(getApplicationContext(), serverAddress);
-            IVigilateApi api = restAdapter.create(IVigilateApi.class);
-            Logger.d("Api created, making login call...");
-
-            String metadata = String.format("{\"device\": {\"imei\": \"%s\"}}", imei);
-            api.login(new User(email, password, metadata), new Callback<User>() {
+            mIVigilateManager.getSettings().setServerAddress(serverAddress);
+            mIVigilateManager.login(new User(email, password), new IVigilateApiCallback<User>() {
                 @Override
-                public void success(User user, Response response) {
-                    Logger.d("Login successful!");
+                public void success(User user) {
+                    showProgress(false);
                     if (user != null) {
-                        AppContext appContext = (AppContext)getApplication();
-                        appContext.settings.setUser(user);
-                        appContext.settings.setDebugServerAddress(serverAddress);
-                        gotoMainActivity();
+                        mLLLogin.setVisibility(View.GONE);
+
                     } else {
-                        showProgress(false);
                         mPasswordView.setError(getString(R.string.error_incorrect_password));
                         mPasswordView.requestFocus();
                     }
                 }
 
                 @Override
-                public void failure(RetrofitError retrofitError) {
-                    if (retrofitError.getResponse() != null) {
-                        String errorMsg = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
-                        Logger.e("Login failed with error: " + errorMsg);
-                        mPasswordView.setError(errorMsg);
-                        mPasswordView.requestFocus();
-                    } else {
-                        Toast.makeText(LoginActivity.this, getString(R.string.error_network_error), Toast.LENGTH_LONG).show();
-                        Logger.e("Login failed with error: " + retrofitError.getKind().toString() +
-                                " - " + retrofitError.getMessage());
-                    }
+                public void failure(String errorMsg) {
+                    mPasswordView.setError(errorMsg);
+                    mPasswordView.requestFocus();
                     showProgress(false);
                 }
             });
+
         } catch (Exception e) {
             Logger.e("Failed with exception: " + e.getMessage());
         }
     }
 
-    private void gotoMainActivity() {
-        Logger.d("Replacing current activity...");
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
-        finish();
-    }
 }
 

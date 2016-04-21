@@ -1,4 +1,4 @@
-package com.ivigilate.android.utils;
+package com.ivigilate.android.core.utils;
 
 public class StringUtils {
 

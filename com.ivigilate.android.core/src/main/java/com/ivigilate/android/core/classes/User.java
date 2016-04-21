@@ -1,4 +1,4 @@
-package com.ivigilate.android.classes;
+package com.ivigilate.android.core.classes;
 
 public class User {
     public int id;
@@ -9,11 +9,10 @@ public class User {
     public String last_name;
     public String metadata;
 
-    public User () {}
+    public User() {}
 
-    public User(String email, String password, String metadata) {
+    public User(String email, String password) {
         this.email = email;
         this.password = password;
-        this.metadata = metadata;
     }
 }

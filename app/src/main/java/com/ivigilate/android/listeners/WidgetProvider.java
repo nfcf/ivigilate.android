@@ -24,7 +24,7 @@ public class WidgetProvider extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         views.setTextViewText(R.id.widget_title, context.getString(R.string.app_name));
-        views.setImageViewResource(R.id.widget_button, appContext.settings.getServiceEnabled() ? R.drawable.ic_widget_service_on : R.drawable.ic_widget_service_off);
+        //views.setImageViewResource(R.id.widget_button, appContext.settings.getServiceEnabled() ? R.drawable.ic_widget_service_on : R.drawable.ic_widget_service_off);
 
         Intent startStopServiceIntent = new Intent(context, StartStopServiceListener.class);
         startStopServiceIntent.putExtra(StartStopServiceListener.INTENT_EXTRA_TOGGLE, true);

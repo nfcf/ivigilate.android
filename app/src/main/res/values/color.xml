@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <color name="white">#ffffff</color>
+    <color name="very_light_grey">#ffe9e9e9</color>
+    <color name="light_grey">#cccccc</color>
+    <color name="dark_grey">#3a3b3d</color>
+    <color name="bclose_green">#B5F015</color>
+
+    <color name="transparent">#00ffffff</color>
+    <color name="translucent_light_grey">#88cdcdcd</color>
+    <color name="translucent_grey">#88696969</color>
+    <color name="translucent_white">#8efffeff</color>
+</resources>

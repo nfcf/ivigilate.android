@@ -2,6 +2,6 @@
     <string name="app_name">iVigilate</string>
     <string name="main_title">iVigilate - bClose</string>
 
-    <string name="crash_text">Oooops! Something went wrong&#8230;\n\nA report has been sent to the developers to help fix the issue!</string>
+    <string name="crash_text">Oooops! Something went wrong&#8230;\n\nA report will been sent to the developers to help fix the issue!</string>
     <string name="notification_text">Service is running...</string>
 </resources>

@@ -2,9 +2,8 @@ package com.ivigilate.android;
 
 import android.app.Application;
 import android.content.Intent;
-import com.ivigilate.android.classes.Settings;
+
 import com.ivigilate.android.listeners.WidgetProvider;
-import com.ivigilate.android.services.MainService;
 import com.ivigilate.android.utils.Logger;
 
 import org.acra.ACRA;
@@ -18,8 +17,6 @@ public class AppContext extends Application {
 
     public static final int NOTIFICATION_ID = 1;
 
-    public Settings settings = null;
-
     @Override
     public void onCreate() {
         Logger.d("Started...");
@@ -27,17 +24,14 @@ public class AppContext extends Application {
 
         ACRA.init(this);
 
-        if (settings == null) {
-            settings = new Settings(this);
-        }
         Logger.i("Finished...");
     }
 
     public void startService() {
         Logger.d("Starting service...");
-        settings.setServiceEnabled(true);
-        Intent i = new Intent(this, MainService.class);
-        this.startService(i);
+        //settings.setServiceEnabled(true);
+        //Intent i = new Intent(this, MainService.class);
+        //this.startService(i);
 
         Logger.d("Updating widgets...");
         WidgetProvider.updateWidget(this);
@@ -45,9 +39,9 @@ public class AppContext extends Application {
 
     public void stopService() {
         Logger.d("Stopping service...");
-        settings.setServiceEnabled(false);
-        Intent i = new Intent(this, MainService.class);
-        this.stopService(i);
+        //settings.setServiceEnabled(false);
+        //Intent i = new Intent(this, MainService.class);
+        //this.stopService(i);
 
         Logger.d("Updating widgets...");
         WidgetProvider.updateWidget(this);

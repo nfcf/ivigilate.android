@@ -5,9 +5,8 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CompoundButton;
@@ -19,7 +18,7 @@ import com.ivigilate.android.utils.Logger;
 
 public class MainActivity extends ActionBarActivity {
 
-    private Switch mSwitchServiceEnabled;
+    /*private Switch mSwitchServiceEnabled;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +62,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
+        // automatically handle clicks on the Home/Up button_rounded_corners, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
@@ -104,4 +103,5 @@ public class MainActivity extends ActionBarActivity {
         startActivity(intent);
         finish();
     }
+    */
 }
