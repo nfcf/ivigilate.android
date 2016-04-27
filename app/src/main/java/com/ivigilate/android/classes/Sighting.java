@@ -1,25 +1,17 @@
 package com.ivigilate.android.classes;
 
 public class Sighting {
-    public long timestamp;
-    public String company_id;
-    public String detector_uid;
-    public String beacon_uid;
+    public String mac;
+    public String uuid;
     public int rssi;
-    public int battery;
-    public GPSLocation location;
 
-    public Sighting() {
-        this.timestamp = System.currentTimeMillis();
+    public Sighting (String mac, String uuid, int rssi) {
+        this.mac = mac.toLowerCase();
+        this.uuid = uuid.contains("0000") ? "" : uuid.toLowerCase(); // What are the odds of a uuid containing 4 0's in a row?
+        this.rssi = rssi;
     }
 
-    public Sighting(String company_id, String detector_uid, String beacon_uid, int rssi, int battery, GPSLocation location){
-        this();
-        this.company_id = company_id;
-        this.detector_uid = detector_uid;
-        this.beacon_uid = beacon_uid;
-        this.rssi = rssi;
-        this.battery = battery;
-        this.location = location;
+    public String getKey () {
+        return mac + (uuid.length() > 0 ? "|" + uuid : "");
     }
 }

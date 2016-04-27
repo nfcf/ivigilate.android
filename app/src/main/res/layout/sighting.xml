@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/background_floating_material_light"
+    android:padding="10dp" >
+
+    <ImageView android:id="@+id/ivType"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_marginEnd="10dp" />
+
+    <TextView android:id="@+id/tvMacTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/ivType"
+        android:textColor="@color/abc_primary_text_material_light"
+        android:text="MAC:"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvMacValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvMacTitle"
+        android:textColor="@color/abc_secondary_text_material_light"
+        android:text="XX-XX-XX-XX-XX-XX"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvRssiTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvMacValue"
+        android:textColor="@color/abc_primary_text_material_light"
+        android:text="RSSI:"
+        android:paddingLeft="20dp"
+        android:paddingTop="2dp"/>
+
+    <TextView android:id="@+id/tvRssiValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvRssiTitle"
+        android:textColor="@color/abc_secondary_text_material_light"
+        android:text="-90"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvUuidTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/ivType"
+        android:layout_below="@id/tvMacTitle"
+        android:textColor="@color/abc_primary_text_material_light"
+        android:text="UUID:"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvUuidValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvUuidTitle"
+        android:layout_below="@id/tvMacValue"
+        android:textColor="@color/abc_secondary_text_material_light"
+        android:text="12345678901234567890123456789012"
+        android:padding="2dp"/>
+
+</RelativeLayout>

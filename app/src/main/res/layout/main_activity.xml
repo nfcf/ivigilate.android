@@ -1,54 +1,141 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.ivigilate.android.activities.MainActivity">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    android:orientation="vertical"
+    tools:context=".activities.MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/ivLogout"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="16dp"
+            android:src="@drawable/back_button" />
+
+        <ImageView
+            android:id="@+id/ivLogo"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/logo_white" />
+    </RelativeLayout>
+
+    <!-- Login progress -->
+    <ProgressBar
+        android:id="@+id/pbLogin"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="64dp"
+        android:visibility="gone" />
 
     <ScrollView
-        android:id="@+id/scrollView"
+        android:id="@+id/svLogin"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_below="@id/ivLogo"
+        android:layout_weight=".84"
+        android:padding="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <EditText
+                android:id="@+id/etServer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="10dp"
-                android:background="#ffe0dfe2">
-                <TextView
-                    android:id="@+id/textViewServiceSectionTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/main_service_section_title"
-                    android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="25dp"
+                android:background="@drawable/text_field"
+                android:gravity="center"
+                android:hint="Server Address"
+                android:imeOptions="actionNext"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="@color/translucent_light_grey"
+                android:textSize="22sp" />
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:id="@+id/textViewServiceSectionButtonText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:text="@string/main_service_section_button_label"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
+            <AutoCompleteTextView
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="25dp"
+                android:background="@drawable/text_field"
+                android:gravity="center"
+                android:hint="Email"
+                android:imeOptions="actionNext"
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="@color/translucent_light_grey"
+                android:textSize="22sp" />
 
-                    <Switch
-                        android:id="@+id/switchServiceEnabled"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true" />
-                </RelativeLayout>
-            </LinearLayout>
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="25dp"
+                android:background="@drawable/text_field"
+                android:gravity="center"
+                android:hint="Password"
+                android:imeActionId="@+id/login"
+                android:imeActionLabel="@string/action_sign_in"
+                android:imeOptions="actionUnspecified"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="@color/translucent_light_grey"
+                android:textSize="22sp" />
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="25dp"
+                android:background="@drawable/button_rounded_corners"
+                android:text="LOGIN"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </ScrollView>
-</RelativeLayout>
+
+    <ListView
+        android:id="@+id/lvSightings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/ivLogo"
+        android:layout_weight=".84"
+        android:paddingBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnStartStop"
+        android:layout_width="80dp"
+        android:layout_height="0dp"
+        android:layout_below="@id/scrollView"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight=".16"
+        android:background="@drawable/button_circular"
+        android:text="Scan"
+        android:textColor="@color/white"
+        android:textSize="22sp" />
+</LinearLayout>
