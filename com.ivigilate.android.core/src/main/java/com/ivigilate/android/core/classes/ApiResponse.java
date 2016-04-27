@@ -1,5 +1,9 @@
 package com.ivigilate.android.core.classes;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by nuno.freire on 21/04/16.
  */

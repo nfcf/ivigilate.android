@@ -6,14 +6,29 @@
     android:orientation="vertical"
     tools:context=".activities.MainActivity">
 
-    <ImageView
-        android:id="@+id/ivLogo"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/logo_white"
-        android:layout_width="wrap_content"
-        android:layout_height="64dp"
-        android:layout_marginTop="16dp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/ivLogout"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_margin="16dp"
+            android:src="@drawable/back_button" />
+
+        <ImageView
+            android:id="@+id/ivLogo"
+            android:layout_width="128dp"
+            android:layout_height="64dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/logo_white" />
+    </RelativeLayout>
 
     <!-- Login progress -->
     <ProgressBar
@@ -21,19 +36,18 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="16dp"
+        android:layout_margin="64dp"
         android:visibility="gone" />
 
     <ScrollView
-        android:id="@+id/scrollView"
+        android:id="@+id/svLogin"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".85"
         android:layout_below="@id/ivLogo"
+        android:layout_weight=".84"
         android:padding="16dp">
 
         <LinearLayout
-            android:id="@+id/llLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -43,77 +57,85 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_gravity="center_horizontal"
-                android:gravity="center"
                 android:layout_marginBottom="25dp"
-                android:textColor="@color/white"
-                android:textSize="22sp"
-                android:maxLines="1"
+                android:background="@drawable/text_field"
+                android:gravity="center"
                 android:hint="Server Address"
-                android:textColorHint="@color/translucent_light_grey"
-                android:singleLine="true"
                 android:imeOptions="actionNext"
-                android:background="@drawable/text_field"/>
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="@color/translucent_light_grey"
+                android:textSize="22sp" />
 
             <AutoCompleteTextView
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_gravity="center_horizontal"
-                android:gravity="center"
                 android:layout_marginBottom="25dp"
-                android:textColor="@color/white"
-                android:textSize="22sp"
-                android:maxLines="1"
+                android:background="@drawable/text_field"
+                android:gravity="center"
                 android:hint="Email"
-                android:textColorHint="@color/translucent_light_grey"
-                android:singleLine="true"
-                android:inputType="textEmailAddress"
                 android:imeOptions="actionNext"
-                android:background="@drawable/text_field"/>
+                android:inputType="textEmailAddress"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="@color/translucent_light_grey"
+                android:textSize="22sp" />
 
             <EditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_gravity="center_horizontal"
-                android:gravity="center"
                 android:layout_marginBottom="25dp"
-                android:textColor="@color/white"
-                android:textSize="22sp"
-                android:maxLines="1"
+                android:background="@drawable/text_field"
+                android:gravity="center"
                 android:hint="Password"
-                android:textColorHint="@color/translucent_light_grey"
-                android:singleLine="true"
-                android:inputType="textPassword"
                 android:imeActionId="@+id/login"
                 android:imeActionLabel="@string/action_sign_in"
                 android:imeOptions="actionUnspecified"
-                android:background="@drawable/text_field"/>
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textColorHint="@color/translucent_light_grey"
+                android:textSize="22sp" />
 
             <Button
                 android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:textSize="22sp"
-                android:textStyle="bold"
-                android:text="LOGIN"
-                android:textColor="@color/white"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="25dp"
-                android:background="@drawable/button_rounded_corners"/>
+                android:background="@drawable/button_rounded_corners"
+                android:text="LOGIN"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
     </ScrollView>
 
+    <ListView
+        android:id="@+id/lvSightings"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/ivLogo"
+        android:layout_weight=".84"
+        android:paddingBottom="16dp"/>
+
     <Button
         android:id="@+id/btnStartStop"
-        android:text="Start"
-        android:textSize="22sp"
-        android:background="@drawable/button_circular"
-        android:textColor="@color/white"
-        android:layout_width="96dp"
+        android:layout_width="80dp"
         android:layout_height="0dp"
-        android:layout_weight=".15"
         android:layout_below="@id/scrollView"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal"
+        android:layout_weight=".16"
+        android:background="@drawable/button_circular"
+        android:text="Scan"
+        android:textColor="@color/white"
+        android:textSize="22sp" />
 </LinearLayout>

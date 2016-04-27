@@ -35,10 +35,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.LoginActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/main_title"
-            android:windowSoftInputMode="adjustResize|stateVisible" >
+            android:windowSoftInputMode="stateHidden|adjustResize|adjustPan"
+            android:screenOrientation="portrait">
         </activity>
+
+
+        <receiver android:name=".core.receivers.ServiceController" />
+
+        <service android:enabled="true"
+            android:exported="false"
+            android:isolatedProcess="false"
+            android:name=".core.IVigilateService" />
+
 
         <receiver android:name=".listeners.StartStopServiceListener">
             <intent-filter >
@@ -48,13 +58,6 @@
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
                 <data android:scheme="package" android:path="com.ivigilate.android"/>
             </intent-filter>
-        </receiver>
-
-        <receiver android:name=".listeners.WidgetProvider" >
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_provider_info" />
         </receiver>
 
     </application>

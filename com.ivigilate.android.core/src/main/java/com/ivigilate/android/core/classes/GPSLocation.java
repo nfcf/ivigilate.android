@@ -11,6 +11,6 @@ public class GPSLocation {
         this.coordinates = new double[2];
         this.coordinates[0] = longitude;
         this.coordinates[1] = latitude;
-        this.coordinates[2] = altitude;
+        //this.coordinates[2] = altitude;
     }
 }

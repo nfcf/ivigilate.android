@@ -26,6 +26,6 @@
     <service android:enabled="true"
         android:exported="false"
         android:isolatedProcess="false"
-        android:name=".services.MainService" />
+        android:name=".IVigilateService" />
 
 </manifest>

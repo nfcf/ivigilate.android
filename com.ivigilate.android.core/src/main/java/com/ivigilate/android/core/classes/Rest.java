@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.ivigilate.android.core.R;
 import com.ivigilate.android.core.utils.Logger;
+import com.ivigilate.android.core.utils.StringUtils;
 import com.squareup.okhttp.OkHttpClient;
 
 import java.io.InputStream;
@@ -17,19 +18,30 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 
+import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
 
 public class Rest {
-    static final String IVIGILATE_HOSTNAME = "portal.ivigilate.com";
+    static final String IVIGILATE_DEV_HOSTNAME = "dev.ivigilate.com";
+    static final String IVIGILATE_PRD_HOSTNAME = "portal.ivigilate.com";
 
-    public static RestAdapter createAdapter(Context context, String serverAddress) {
+    public static <T> T createService(Class<T> serviceClass, Context context, final String serverAddress) {
+        return createService(serviceClass, context, serverAddress, "");
+    }
+
+    public static <T> T createService(Class<T> serviceClass, Context context, final String serverAddress, final String authToken) {
+
+        RestAdapter.Builder builder = new RestAdapter.Builder()
+                                            .setEndpoint(serverAddress);
+
         if (serverAddress.startsWith("https://")) {
             try {
-
                 // loading CAs from an InputStream
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                InputStream cert = context.getResources().openRawResource(R.raw.portal_ivigilate_com);
+                InputStream cert = context.getResources().
+                        openRawResource(serverAddress.contains(IVIGILATE_PRD_HOSTNAME) ?
+                                R.raw.portal_ivigilate_com: R.raw.dev_ivigilate_com );
                 Certificate ca;
                 try {
                     ca = cf.generateCertificate(cert);
@@ -58,7 +70,8 @@ public class Rest {
                     @Override
                     public boolean verify(String hostname, SSLSession session) {
                         if (hostname.contains("192.168") ||
-                                hostname.equalsIgnoreCase(IVIGILATE_HOSTNAME)) {
+                                hostname.equalsIgnoreCase(IVIGILATE_DEV_HOSTNAME) ||
+                                hostname.equalsIgnoreCase(IVIGILATE_PRD_HOSTNAME)) {
                             return true;
                         }
                         return false;
@@ -66,19 +79,26 @@ public class Rest {
                 });
 
                 // creating a RestAdapter using the custom client
-                return new RestAdapter.Builder()
-                        .setEndpoint(serverAddress)
-                        .setClient(new OkClient(okHttpClient))
-                        .build();
+                builder = builder.setClient(new OkClient(okHttpClient));
 
             } catch (Exception ex) {
                 Logger.e(ex.getMessage());
+                return null;
             }
-            return null;
         } else {
-            return new RestAdapter.Builder()
-                    .setEndpoint(serverAddress)
-                    .build();
+            builder = builder.setClient(new OkClient());
         }
+
+        if (!StringUtils.isNullOrBlank(authToken)) {
+            builder.setRequestInterceptor(new RequestInterceptor() {
+                @Override
+                public void intercept(RequestInterceptor.RequestFacade request) {
+                    request.addHeader("Authorization", "Token " + authToken);
+                }
+            });
+        }
+
+        RestAdapter ra = builder.build();
+        return ra.create(serviceClass);
     }
 }

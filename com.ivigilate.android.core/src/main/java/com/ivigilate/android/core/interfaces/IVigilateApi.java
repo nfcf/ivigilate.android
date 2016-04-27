@@ -12,12 +12,15 @@ import retrofit.http.Body;
 import retrofit.http.POST;
 
 public interface IVigilateApi {
-    @POST("/api/v2/login/")
+    @POST("/api/v1/login/")
     void login(@Body User user, Callback<ApiResponse<User>> cb);
 
-    @POST("/api/v2/provisiondevice/") // this one requires login
+    @POST("/api/v1/logout/")
+    void logout(Callback<ApiResponse<User>> cb);
+
+    @POST("/api/v1/provisiondevice/") // this one requires login
     void provisionDevice(@Body Device device, Callback<ApiResponse<Void>> cb);
 
-    @POST("/api/v2/addsightings/") // this one does not require login
+    @POST("/api/v1/addsightings/") // this one does not require login
     void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<Void>> cb);
 }

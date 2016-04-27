@@ -9,10 +9,13 @@ import android.os.PowerManager;
 
 import com.ivigilate.android.core.classes.ApiResponse;
 import com.ivigilate.android.core.classes.Device;
+import com.ivigilate.android.core.classes.GPSLocation;
 import com.ivigilate.android.core.classes.Rest;
 import com.ivigilate.android.core.classes.Settings;
+import com.ivigilate.android.core.classes.Sighting;
 import com.ivigilate.android.core.classes.User;
-import com.ivigilate.android.core.interfaces.IDeviceSighted;
+import com.ivigilate.android.core.interfaces.ILocationListener;
+import com.ivigilate.android.core.interfaces.ISightingListener;
 import com.ivigilate.android.core.interfaces.IVigilateApi;
 import com.ivigilate.android.core.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.core.receivers.ServiceController;
@@ -20,6 +23,7 @@ import com.ivigilate.android.core.utils.Logger;
 import com.ivigilate.android.core.utils.PhoneUtils;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
@@ -36,46 +40,118 @@ public class IVigilateManager {
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingIntentService;
     private IVigilateApi mApi;
-    private IDeviceSighted mDeviceSighted;
+
+    private ISightingListener mSightingListener;
+    private ILocationListener mLocationListener;
 
     private static PowerManager.WakeLock mWakeLock;
     private static WifiManager.WifiLock mWifiLock;
+
+    private static IVigilateManager mInstance;
 
     private IVigilateManager(Context context) {
         mContext = context;
         mSettings = new Settings(context);
 
-        RestAdapter restAdapter = Rest.createAdapter(mContext, mSettings.getServerAddress());
-        mApi = restAdapter.create(IVigilateApi.class);
+        mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser() != null ? mSettings.getUser().token : "");
     }
 
-    public Settings getSettings() {
-        return mSettings;
-    }
-    public void setServerAddress(String address) {
-        mSettings.setServerAddress(address);
-
-        RestAdapter restAdapter = Rest.createAdapter(mContext, mSettings.getServerAddress());
-        mApi = restAdapter.create(IVigilateApi.class);
-    }
-
-    public void setOnDeviceSighted(IDeviceSighted deviceSighted) {
-        mDeviceSighted = deviceSighted;
-    }
-
-    public void onDeviceSighted(String mac, String uid, int rssi) {
-        if (mDeviceSighted != null) {
-            mDeviceSighted.sighting(mac, uid, rssi);
-        }
-    }
-
-    private static IVigilateManager mInstance;
     public static IVigilateManager getInstance(Context context) {
         if (mInstance == null) {
             Logger.d("IVigilateManager instance creation.");
             mInstance = new IVigilateManager(context);
         }
         return mInstance;
+    }
+
+    public String getServerAddress() {
+        return mSettings.getServerAddress();
+    }
+
+    public void setServerAddress(String address) {
+        mSettings.setServerAddress(address);
+
+        mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser() != null ? mSettings.getUser().token : "");
+    }
+
+    protected long getServerTimeOffset() {
+        return mSettings.getServerTimeOffset();
+    }
+
+    protected void setServerTimeOffset(long offset) {
+        mSettings.setServerTimeOffset(offset);
+    }
+
+    protected HashMap<String, Sighting> getServiceActiveSightings() {
+        return mSettings.getServiceActiveSightings();
+    }
+
+    protected void setServiceActiveSightings(HashMap<String, Sighting> activeSightings) {
+        mSettings.setServiceActiveSightings(activeSightings);
+    }
+
+    protected long getServiceSendInterval() {
+        return mSettings.getServiceSendInterval();
+    }
+
+    public void setServiceSendInterval(int interval) {
+        mSettings.setServiceSendInterval(interval);
+    }
+
+    protected int getServiceStateChangeInterval() {
+        return mSettings.getServiceStateChangeInterval();
+    }
+
+    public void setServiceStateChangeInterval(int intervalInMilliSeconds) {
+        mSettings.setServiceStateChangeInterval(intervalInMilliSeconds);
+    }
+
+    public String getServiceSendSightingMetadata() {
+        return mSettings.getServiceSendSightingMetadata();
+    }
+
+    public void setServiceSightingMetadata(String json) {
+        mSettings.setServiceSendSightingMetadata(json);
+    }
+
+    protected long getLocationRequestInterval() {
+        return mSettings.getLocationRequestInterval();
+    }
+
+    public void setLocationRequestInterval(int intervalInMilliSeconds) {
+        mSettings.setLocationRequestInterval(intervalInMilliSeconds);
+    }
+
+    protected long getLocationRequestFastestInterval() {
+        return mSettings.getLocationRequestFastestInterval();
+    }
+
+    public void setLocationRequestFastestInterval(int intervalInMilliSeconds) {
+        mSettings.setLocationRequestFastestInterval(intervalInMilliSeconds);
+    }
+
+    protected long getLocationRequestSmallestDisplacement() {
+        return mSettings.getLocationRequestSmallestDisplacement();
+    }
+
+    public void setLocationRequestSmallestDisplacement(int distanceInMeters) {
+        mSettings.setLocationRequestSmallestDisplacement(distanceInMeters);
+    }
+
+    public User getUser() {
+        return mSettings.getUser();
+    }
+
+    protected void setUser(User user) {
+        mSettings.setUser(user);
+    }
+
+    public void setSightingListener(ISightingListener sightingListener) {
+        mSightingListener = sightingListener;
+    }
+
+    public void setLocationListener(ILocationListener locationListener) {
+        mLocationListener = locationListener;
     }
 
     public void startService() {
@@ -121,12 +197,20 @@ public class IVigilateManager {
             @Override
             public void success(ApiResponse<User> result, Response response) {
                 Logger.d("Login successful!");
-                mSettings.setServerTimeOffset(new Date(result.timestamp).getTime() - System.currentTimeMillis());
+                mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
                 mSettings.setUser(result.data);
 
-                provisionDevice(new Device(Device.Type.DetectorUser, PhoneUtils.getDeviceUniqueId(mContext), ""), null);
+                if (mSettings.getUser() != null) {
+                    mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser().token);
 
-                if (callback != null) callback.success(result.data);
+                    Device device = new Device(Device.Type.DetectorUser, PhoneUtils.getDeviceUniqueId(mContext), mSettings.getUser().email);
+                    device.metadata = String.format("{\"device\": {\"model\": \"%s\"}}", PhoneUtils.getDeviceName());
+                    provisionDevice(device, null);
+
+                    if (callback != null) callback.success(result.data);
+                } else {
+                    if (callback != null) callback.failure("Failed to get User info!");
+                }
             }
 
             @Override
@@ -144,12 +228,39 @@ public class IVigilateManager {
         });
     }
 
+    public void logout(final IVigilateApiCallback<User> callback) {
+
+        mSettings.setUser(null);
+        mApi.logout(new Callback<ApiResponse<User>>() {
+            @Override
+            public void success(ApiResponse<User> result, Response response) {
+                Logger.d("Logout successful!");
+                mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
+
+                if (callback != null) callback.success(result.data);
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                String errorMsg = "";
+                if (retrofitError.getResponse() != null) {
+                    errorMsg = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
+                } else {
+                    errorMsg = retrofitError.getKind().toString() + " - " + retrofitError.getMessage();
+                }
+
+                Logger.e("Logout failed with error: " + errorMsg);
+                if (callback != null) callback.failure(errorMsg);
+            }
+        });
+    }
+
     public void provisionDevice(final Device device, final IVigilateApiCallback<Void> callback) {
         mApi.provisionDevice(device, new Callback<ApiResponse<Void>>() {
             @Override
             public void success(ApiResponse<Void> result, Response response) {
                 Logger.i("Device '" + device.uid + "' of type '" + device.type.toString() + "' provisioned successfully.");
-                mSettings.setServerTimeOffset(new Date(result.timestamp).getTime() - System.currentTimeMillis());
+                mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
 
                 if (callback != null) callback.success(null);
             }
@@ -167,6 +278,23 @@ public class IVigilateManager {
                 if (callback != null) callback.failure(errorMsg);
             }
         });
+    }
+
+
+    protected Settings getSettings() {
+        return mSettings;
+    }
+
+    protected void onDeviceSighted(String mac, String uid, int rssi) {
+        if (mSightingListener != null) {
+            mSightingListener.onDeviceSighted(mac, uid, rssi);
+        }
+    }
+
+    protected void onLocationChanged(GPSLocation location) {
+        if (mLocationListener != null) {
+            mLocationListener.onLocationChanged(location);
+        }
     }
 
 

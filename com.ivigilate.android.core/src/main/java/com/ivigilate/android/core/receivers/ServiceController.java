@@ -5,7 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.ivigilate.android.core.services.MainService;
+import com.ivigilate.android.core.IVigilateService;
 import com.ivigilate.android.core.utils.Logger;
 
 public class ServiceController extends BroadcastReceiver {
@@ -14,9 +14,9 @@ public class ServiceController extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!isServiceRunning(context, MainService.class)) {
-            Logger.d("Starting MainService by AlarmManager...");
-            sMainServiceIntent = new Intent(context, MainService.class);
+        if (!isServiceRunning(context, IVigilateService.class)) {
+            Logger.d("Starting IVigilateService by AlarmManager...");
+            sMainServiceIntent = new Intent(context, IVigilateService.class);
             context.startService(sMainServiceIntent);
         }
     }
