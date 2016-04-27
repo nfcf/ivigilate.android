@@ -18,15 +18,12 @@ import com.ivigilate.android.core.interfaces.ILocationListener;
 import com.ivigilate.android.core.interfaces.ISightingListener;
 import com.ivigilate.android.core.interfaces.IVigilateApi;
 import com.ivigilate.android.core.interfaces.IVigilateApiCallback;
-import com.ivigilate.android.core.receivers.ServiceController;
 import com.ivigilate.android.core.utils.Logger;
 import com.ivigilate.android.core.utils.PhoneUtils;
 
-import java.util.Date;
 import java.util.HashMap;
 
 import retrofit.Callback;
-import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
@@ -162,14 +159,14 @@ public class IVigilateManager {
         cancelKeepServiceAliveAlarm();
     }
 
-    public void acquireLocks(Context context) {
-        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+    public void acquireLocks() {
+        PowerManager powerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "iVigilateWakelock");
         if(!mWakeLock.isHeld()){
             mWakeLock.acquire();
         }
 
-        WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wm = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL, "iVigilateWifiLock");
         if(!mWifiLock.isHeld()){
             mWifiLock.acquire();
@@ -299,12 +296,12 @@ public class IVigilateManager {
 
 
     private void setKeepServiceAliveAlarm() {
-        Intent i = new Intent(mContext, ServiceController.class);
+        Intent i = new Intent(mContext, IVigilateServiceController.class);
         if (PendingIntent.getBroadcast(mContext, 0, i, PendingIntent.FLAG_NO_CREATE) == null) {
 
             mAlarmManager = (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
             //Start service and alarmManager to make sure service is always running
-            Intent intentService = new Intent(mContext, ServiceController.class);
+            Intent intentService = new Intent(mContext, IVigilateServiceController.class);
             mPendingIntentService = PendingIntent.getBroadcast(mContext, 0, intentService, PendingIntent.FLAG_UPDATE_CURRENT);
 
             mAlarmManager.setInexactRepeating(

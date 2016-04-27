@@ -77,7 +77,6 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         mIVigilateManager = IVigilateManager.getInstance(this);
         mIVigilateManager.setServiceSendInterval(1 * 1000);
         mIVigilateManager.setServiceStateChangeInterval(10 * 1000);
-        mIVigilateManager.setServiceSightingMetadata("{\"guard_tour\": true}");
 
         mSightings = new LinkedHashMap<String, Sighting>();
 
@@ -118,6 +117,12 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         // Set up the login form.
         mServerView = (EditText) findViewById(R.id.etServer);
         mServerView.setText(mIVigilateManager.getServerAddress());
+        if (BuildConfig.DEBUG) {
+            mServerView.setVisibility(View.VISIBLE);
+        } else {
+            mServerView.setVisibility(View.GONE);
+        }
+
 
         mEmailView = (AutoCompleteTextView) findViewById(R.id.etEmail);
         populateAutoComplete();
@@ -133,6 +138,11 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
                 return false;
             }
         });
+
+        if (BuildConfig.DEBUG) {
+            mEmailView.setText("nuno.freire@ivigilate.com");
+            mPasswordView.setText("123");
+        }
 
         mBtnStartStop.setOnClickListener(new OnClickListener() {
             @Override
@@ -236,12 +246,6 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
             mLvSightings.setVisibility(View.GONE);
 
-            if (BuildConfig.DEBUG && StringUtils.isNullOrBlank(mEmailView.getText().toString())) {
-                mEmailView.setText("nuno.freire@ivigilate.com");
-                mPasswordView.setText("123");
-            } else {
-                mServerView.setVisibility(View.GONE);
-            }
         }
     }
 

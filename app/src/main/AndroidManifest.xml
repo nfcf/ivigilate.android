@@ -42,15 +42,7 @@
         </activity>
 
 
-        <receiver android:name=".core.receivers.ServiceController" />
-
-        <service android:enabled="true"
-            android:exported="false"
-            android:isolatedProcess="false"
-            android:name=".core.IVigilateService" />
-
-
-        <receiver android:name=".listeners.StartStopServiceListener">
+        <receiver android:name=".core.IVigilateServiceController" >
             <intent-filter >
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
@@ -59,6 +51,11 @@
                 <data android:scheme="package" android:path="com.ivigilate.android"/>
             </intent-filter>
         </receiver>
+
+        <service android:enabled="true"
+            android:exported="false"
+            android:isolatedProcess="false"
+            android:name=".core.IVigilateService" />
 
     </application>
 

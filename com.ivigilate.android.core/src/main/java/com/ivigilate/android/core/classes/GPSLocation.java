@@ -13,4 +13,12 @@ public class GPSLocation {
         this.coordinates[1] = latitude;
         //this.coordinates[2] = altitude;
     }
+
+    public double getLongitude() {
+        return this.coordinates[0];
+    }
+
+    public double getLaitude() {
+        return this.coordinates[1];
+    }
 }

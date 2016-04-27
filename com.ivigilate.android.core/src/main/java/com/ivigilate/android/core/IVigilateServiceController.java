@@ -1,23 +1,22 @@
-package com.ivigilate.android.core.receivers;
+package com.ivigilate.android.core;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import com.ivigilate.android.core.IVigilateService;
 import com.ivigilate.android.core.utils.Logger;
 
-public class ServiceController extends BroadcastReceiver {
+public class IVigilateServiceController extends BroadcastReceiver {
 
-    private static Intent sMainServiceIntent = null;
+    private static Intent sIVigilateServiceIntent = null;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if (!isServiceRunning(context, IVigilateService.class)) {
             Logger.d("Starting IVigilateService by AlarmManager...");
-            sMainServiceIntent = new Intent(context, IVigilateService.class);
-            context.startService(sMainServiceIntent);
+            sIVigilateServiceIntent = new Intent(context, IVigilateService.class);
+            context.startService(sIVigilateServiceIntent);
         }
     }
 
@@ -35,7 +34,7 @@ public class ServiceController extends BroadcastReceiver {
     }
 
     public static Intent getServiceIntent() {
-        return sMainServiceIntent;
+        return sIVigilateServiceIntent;
     }
 }
 
