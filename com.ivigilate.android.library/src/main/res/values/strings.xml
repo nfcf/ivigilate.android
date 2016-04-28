@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">iVigilate Core</string>
+
+    <string name="error_network">Network error</string>
+    <string name="error_no_response">No response from server</string>
+    <string name="error_network_http_error">Network HTTP error</string>
+    <string name="error_unknown">Unknown error</string>
 </resources>

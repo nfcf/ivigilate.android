@@ -33,7 +33,8 @@ public class Rest {
     public static <T> T createService(Class<T> serviceClass, Context context, final String serverAddress, final String authToken) {
 
         RestAdapter.Builder builder = new RestAdapter.Builder()
-                                            .setEndpoint(serverAddress);
+                .setErrorHandler(new CustomErrorHandler(context))
+                .setEndpoint(serverAddress);
 
         if (serverAddress.startsWith("https://")) {
             try {

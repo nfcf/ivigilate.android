@@ -16,6 +16,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.IVigilateManager;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.GPSLocation;
@@ -216,14 +218,19 @@ public class IVigilateService extends Service implements
 
                                 @Override
                                 public void failure(RetrofitError retrofitError) {
-                                    String errorMsg = "";
-                                    if (retrofitError.getResponse() != null) {
-                                        errorMsg = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
-                                    } else {
-                                        errorMsg = retrofitError.getKind().toString() + " - " + retrofitError.getMessage();
+                                    String error = retrofitError.getLocalizedMessage();
+                                    try {
+                                        Gson gson = new Gson();
+                                        Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                                        ApiResponse<String> errorObj = gson.fromJson(error, type);
+                                        mIVigilateManager.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+
+                                        error = errorObj.data;
+                                    } catch (Exception ex) {
+                                        // Do nothing...
                                     }
 
-                                    Logger.e("ApiThread failed to send onDeviceSighted(s): " + errorMsg);
+                                    Logger.e("ApiThread failed to send Sighting(s): " + error);
                                 }
                             });
                         }

@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.GPSLocation;
@@ -21,6 +23,7 @@ import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.PhoneUtils;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 
 import retrofit.Callback;
@@ -29,7 +32,7 @@ import retrofit.client.Response;
 import retrofit.mime.TypedByteArray;
 
 public class IVigilateManager {
-    private static final long INTERVAL_CHECK_SERVICE_ALIVE = 30 * 1000; // unit: ms
+    private static final long INTERVAL_CHECK_SERVICE_ALIVE = 20 * 1000; // unit: ms
 
     private Context mContext;
     private Settings mSettings;
@@ -212,15 +215,20 @@ public class IVigilateManager {
 
             @Override
             public void failure(RetrofitError retrofitError) {
-                String errorMsg = "";
-                if (retrofitError.getResponse() != null) {
-                    errorMsg = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
-                } else {
-                    errorMsg = retrofitError.getKind().toString() + " - " + retrofitError.getMessage();
+                String error = retrofitError.getLocalizedMessage();
+                try {
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    ApiResponse<String> errorObj = gson.fromJson(error, type);
+                    mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+
+                    error = errorObj.data;
+                } catch (Exception ex) {
+                    // Do nothing...
                 }
 
-                Logger.e("Device provisioning failed with error: " + errorMsg);
-                if (callback != null) callback.failure(errorMsg);
+                Logger.e("Device provisioning failed with error: " + error);
+                if (callback != null) callback.failure(error);
             }
         });
     }
@@ -239,15 +247,20 @@ public class IVigilateManager {
 
             @Override
             public void failure(RetrofitError retrofitError) {
-                String errorMsg = "";
-                if (retrofitError.getResponse() != null) {
-                    errorMsg = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
-                } else {
-                    errorMsg = retrofitError.getKind().toString() + " - " + retrofitError.getMessage();
+                String error = retrofitError.getLocalizedMessage();
+                try {
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    ApiResponse<String> errorObj = gson.fromJson(error, type);
+                    mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+
+                    error = errorObj.data;
+                } catch (Exception ex) {
+                    // Do nothing...
                 }
 
-                Logger.e("Logout failed with error: " + errorMsg);
-                if (callback != null) callback.failure(errorMsg);
+                Logger.e("Logout failed with error: " + error);
+                if (callback != null) callback.failure(error);
             }
         });
     }
@@ -264,15 +277,20 @@ public class IVigilateManager {
 
             @Override
             public void failure(RetrofitError retrofitError) {
-                String errorMsg = "";
-                if (retrofitError.getResponse() != null) {
-                    errorMsg = new String(((TypedByteArray) retrofitError.getResponse().getBody()).getBytes());
-                } else {
-                    errorMsg = retrofitError.getKind().toString() + " - " + retrofitError.getMessage();
+                String error = retrofitError.getLocalizedMessage();
+                try {
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    ApiResponse<String> errorObj = gson.fromJson(error, type);
+                    mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+
+                    error = errorObj.data;
+                } catch (Exception ex) {
+                    // Do nothing...
                 }
 
-                Logger.e("Device provisioning failed with error: " + errorMsg);
-                if (callback != null) callback.failure(errorMsg);
+                Logger.e("Device provisioning failed with error: " + error);
+                if (callback != null) callback.failure(error);
             }
         });
     }
