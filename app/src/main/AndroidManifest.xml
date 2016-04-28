@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ivigilate.android" >
+    package="com.ivigilate.android.app" >
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -42,21 +42,21 @@
         </activity>
 
 
-        <receiver android:name=".core.IVigilateServiceController"
+        <receiver android:name="com.ivigilate.android.library.IVigilateServiceController"
             android:exported="true">
             <intent-filter >
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" android:path="com.ivigilate.android"/>
+                <data android:scheme="package" android:path="com.ivigilate.android.app"/>
             </intent-filter>
         </receiver>
 
         <service android:enabled="true"
             android:exported="true"
             android:isolatedProcess="false"
-            android:name=".core.IVigilateService" />
+            android:name="com.ivigilate.android.library.IVigilateService" />
 
     </application>
 

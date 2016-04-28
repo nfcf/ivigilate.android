@@ -1,1 +1,1 @@
-include ':app', ':com.ivigilate.android.core'
+include ':app', ':com.ivigilate.android.library'
