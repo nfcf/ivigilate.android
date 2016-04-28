@@ -18,7 +18,7 @@ public class GPSLocation {
         return this.coordinates[0];
     }
 
-    public double getLaitude() {
+    public double getLatitude() {
         return this.coordinates[1];
     }
 }

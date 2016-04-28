@@ -20,7 +20,7 @@ public class IVigilateServiceController extends BroadcastReceiver {
         }
     }
 
-    private boolean isServiceRunning(Context context, Class<?> serviceClass) {
+    protected static boolean isServiceRunning(Context context, Class<?> serviceClass) {
         ActivityManager am = (ActivityManager) context
                 .getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo serviceInfo : am.getRunningServices(Integer.MAX_VALUE)) {

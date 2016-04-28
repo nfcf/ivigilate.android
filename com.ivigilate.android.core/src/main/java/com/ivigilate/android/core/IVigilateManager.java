@@ -315,6 +315,10 @@ public class IVigilateManager {
             if (mAlarmManager != null) mAlarmManager.cancel(mPendingIntentService);
             mPendingIntentService.cancel();
         }
+        if (IVigilateServiceController.getServiceIntent() != null &&
+                IVigilateServiceController.isServiceRunning(mContext, IVigilateService.class)) {
+            mContext.stopService(IVigilateServiceController.getServiceIntent());
+        }
     }
 
 }

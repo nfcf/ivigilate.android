@@ -42,7 +42,8 @@
         </activity>
 
 
-        <receiver android:name=".core.IVigilateServiceController" >
+        <receiver android:name=".core.IVigilateServiceController"
+            android:exported="true">
             <intent-filter >
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
@@ -53,7 +54,7 @@
         </receiver>
 
         <service android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:isolatedProcess="false"
             android:name=".core.IVigilateService" />
 
