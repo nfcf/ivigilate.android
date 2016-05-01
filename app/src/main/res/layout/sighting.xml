@@ -63,4 +63,40 @@
         android:text="12345678901234567890123456789012"
         android:padding="2dp"/>
 
+    <TextView android:id="@+id/tvDataTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/ivType"
+        android:layout_below="@id/tvUuidTitle"
+        android:textColor="@color/abc_primary_text_material_light"
+        android:text="Data:"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvDataValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvDataTitle"
+        android:layout_below="@id/tvUuidValue"
+        android:textColor="@color/abc_secondary_text_material_light"
+        android:text="xxxxyyyyzzzz"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvManufacturerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/ivType"
+        android:layout_below="@id/tvDataValue"
+        android:textColor="@color/abc_primary_text_material_light"
+        android:text="Manufacturer:"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvManufacturerValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvManufacturerTitle"
+        android:layout_below="@id/tvDataValue"
+        android:textColor="@color/abc_secondary_text_material_light"
+        android:text="0215"
+        android:padding="2dp"/>
+
 </RelativeLayout>

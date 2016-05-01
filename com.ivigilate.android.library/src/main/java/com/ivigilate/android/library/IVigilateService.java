@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.IVigilateManager;
 import com.ivigilate.android.library.classes.ApiResponse;
+import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.Sighting;
@@ -94,11 +95,11 @@ public class IVigilateService extends Service implements
         buildGoogleApiAndLocationRequest();
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //altBeacon
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //kontakt / jaalee
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")); //estimote
-        mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
+        mBeaconManager.getBeaconParsers().clear();
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //altBeacon
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //kontakt / jaalee / estimote
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
 
         Logger.i("Finished...");
     }
@@ -143,7 +144,7 @@ public class IVigilateService extends Service implements
 
     @Override
     public void onBeaconServiceConnect() {
-        mBeaconManager.setRangeNotifier(new RangeNotifier() {
+        /*mBeaconManager.setRangeNotifier(new RangeNotifier() {
             @Override
             public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
                 if (beacons.size() > 0) {
@@ -152,7 +153,7 @@ public class IVigilateService extends Service implements
                     }
                 }
             }
-        });
+        });*/
 
         mBeaconManager.setNonBeaconLeScanCallback(new NonBeaconLeScanCallback() {
             @Override
@@ -162,6 +163,7 @@ public class IVigilateService extends Service implements
         });
 
         try {
+            //mBeaconManager.startMonitoringBeaconsInRegion(new Region(REGION_ID, null, null, null));
             mBeaconManager.startRangingBeaconsInRegion(new Region(REGION_ID, null, null, null));
         } catch (RemoteException e) {
             Logger.e("Error on startRangingBeaconsInRegion(): " + e.getMessage());
@@ -260,7 +262,7 @@ public class IVigilateService extends Service implements
         mAbortApiThread = true;
 
         Logger.d("Release CPU and Wifi locks...");
-        IVigilateManager.getInstance(getApplicationContext()).releaseLocks();
+        mIVigilateManager.releaseLocks();
 
         Logger.d("Unbinding bluetooth manager...");
         mBeaconManager.unbind(this);
@@ -308,7 +310,7 @@ public class IVigilateService extends Service implements
             int beacon_battery = beacon.getDataFields().get(0).intValue();
             int rssi = beacon.getRssi();
 
-            mIVigilateManager.onDeviceSighted(beacon_mac, beacon_uid, rssi); //Event to be catched by the user application
+            //mIVigilateManager.onDeviceSighted(beacon_mac, beacon_uid, rssi); //Event to be catched by the user application
 
             if (mDequeSightings != null) { // This should never be null but just making sure...
 
@@ -352,20 +354,49 @@ public class IVigilateService extends Service implements
     }
 
     private void handleNonBeaconSighting(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
-        String mac = bluetoothDevice.getAddress().replace(":", "");
-
         try {
-            String payload = StringUtils.bytesToHexString(bytes);
-            String manufacturer = payload.substring(14, 18);
-            String uuid = payload.substring(18, 50);
-            Logger.d("bleDevice: " + mac);
-            Logger.d("payload: " + payload);
-            Logger.d("manufacturer: " + manufacturer);
-            Logger.d("uuid: " + uuid);
+            DeviceSighting deviceSighting = new DeviceSighting(bluetoothDevice, rssi, bytes);
 
-            mIVigilateManager.onDeviceSighted(mac, uuid, rssi);
+            mIVigilateManager.onDeviceSighting(deviceSighting);
+
+            if (mDequeSightings != null) { // This should never be null but just making sure...
+
+                Sighting previous_item = !mDequeSightings.isEmpty() ? mDequeSightings.peekLast() : new Sighting();
+                final long now = System.currentTimeMillis() + mIVigilateManager.getServerTimeOffset();
+
+                if (!deviceSighting.getUUID().equalsIgnoreCase(previous_item.beacon_uid) ||
+                        (deviceSighting.getUUID().equalsIgnoreCase(previous_item.beacon_uid) &&
+                                (now - previous_item.timestamp) >= mIVigilateManager.getServiceSendInterval())) {
+
+                    Logger.i("Sighted beacon: %s,%s,%s,%s",
+                            deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi);
+
+                    Context context = getApplicationContext();
+                    Sighting.Type type = mIVigilateManager.getServiceStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
+                    Sighting sighting = new Sighting(now, type,
+                            PhoneUtils.getDeviceUniqueId(context), (int)PhoneUtils.getBatteryLevel(context),
+                            deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi,
+                            mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(), mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null,
+                            mIVigilateManager.getServiceSendSightingMetadata()); //TODO: Send manufacturer in metadata as well!!!
+
+                    if (type == Sighting.Type.AutoClosing || !mActiveSightings.containsKey(sighting.getKey())) {
+                        mDequeSightings.putLast(sighting); // Queue to be sent to server
+                    }
+
+                    mActiveSightings.put(sighting.getKey(), sighting);
+                    mIVigilateManager.setServiceActiveSightings(mActiveSightings);
+                } else {
+                    Logger.d("Averaging packet with previous similar one as it happened less than X second(s) ago.");
+
+                    previous_item.rssi = (previous_item.rssi + rssi) / 2;
+                    synchronized(mDequeSightings) {
+                        mDequeSightings.takeLast();
+                        mDequeSightings.putLast(previous_item);
+                    }
+                }
+            }
         } catch (Exception ex) {
-            Logger.d("Failed to handleNonBeaconSighting: " + ex.getMessage());
+            Logger.d("Failed to handleNonBeaconSighting with exception: " + ex.getMessage());
         }
     }
 

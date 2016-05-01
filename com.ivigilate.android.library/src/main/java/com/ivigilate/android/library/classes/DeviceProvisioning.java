@@ -2,7 +2,7 @@ package com.ivigilate.android.library.classes;
 
 import com.google.gson.annotations.SerializedName;
 
-public class Device {
+public class DeviceProvisioning {
     public enum Type {
         @SerializedName("BF")
         BeaconFixed,
@@ -21,15 +21,15 @@ public class Device {
     public String name;
     public String metadata;
 
-    public Device() {}
+    public DeviceProvisioning() {}
 
-    public Device(Type type, String uid, String name) {
+    public DeviceProvisioning(Type type, String uid, String name) {
         this.type = type;
         this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
         this.name = name;
     }
 
-    public Device(Type type, String uid, String name, String metadata) {
+    public DeviceProvisioning(Type type, String uid, String name, String metadata) {
         this.type = type;
         this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
         this.name = name;

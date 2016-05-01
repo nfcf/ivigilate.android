@@ -30,10 +30,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ivigilate.android.app.BuildConfig;
-import com.ivigilate.android.app.classes.SimpleSighting;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.library.IVigilateManager;
-import com.ivigilate.android.library.classes.Device;
+import com.ivigilate.android.library.classes.DeviceProvisioning;
+import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.User;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
@@ -62,7 +62,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
     private IVigilateManager mIVigilateManager;
 
     private SightingAdapter mSightingAdapter;
-    private LinkedHashMap<String, SimpleSighting> mSightings;
+    private LinkedHashMap<String, DeviceSighting> mSightings;
 
     private boolean isScanning;
 
@@ -77,7 +77,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         mIVigilateManager.setServiceSendInterval(1 * 1000);
         mIVigilateManager.setServiceStateChangeInterval(10 * 1000);
 
-        mSightings = new LinkedHashMap<String, SimpleSighting>();
+        mSightings = new LinkedHashMap<String, DeviceSighting>();
 
         bindControls();
 
@@ -139,7 +139,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         });
 
         if (BuildConfig.DEBUG) {
-            mEmailView.setText("nuno.freire@ivigilate.com");
+            mEmailView.setText("a@b.com");
             mPasswordView.setText("123");
         }
 
@@ -161,16 +161,13 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
                     mBtnStartStop.setText("STOP");
                     mIVigilateManager.setSightingListener(new ISightingListener() {
                         @Override
-                        public void onDeviceSighted(String mac, String uid, int rssi) {
-                            final SimpleSighting s = new SimpleSighting(mac, uid, rssi);
+                        public void onDeviceSighting(final DeviceSighting deviceSighting) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if (!mSightings.containsKey(s.getKey())) {
-                                        mSightings.put(s.getKey(), s);
-                                    } else {
-                                        mSightings.get(s.getKey()).rssi = s.rssi;
-                                    }
+                                    String key =  deviceSighting.getMac() + "|" + deviceSighting.getUUID();
+
+                                    mSightings.put(key, deviceSighting);
 
                                     mSightingAdapter.notifyDataSetChanged();
                                 }
@@ -198,10 +195,10 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
-                final SimpleSighting sighting = (SimpleSighting) parent.getItemAtPosition(position);
+                final DeviceSighting sighting = (DeviceSighting) parent.getItemAtPosition(position);
                 Toast.makeText(getApplicationContext(), "Provisioning mobile beacon...", Toast.LENGTH_SHORT);
 
-                Device d = new Device(Device.Type.BeaconMovable, sighting.mac, "Test");
+                DeviceProvisioning d = new DeviceProvisioning(DeviceProvisioning.Type.BeaconMovable, sighting.getMac(), "Test");
                 mIVigilateManager.provisionDevice(d, new IVigilateApiCallback<Void>() {
                     @Override
                     public void success(Void data) {

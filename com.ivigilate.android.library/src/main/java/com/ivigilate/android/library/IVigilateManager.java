@@ -10,7 +10,8 @@ import android.os.PowerManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
-import com.ivigilate.android.library.classes.Device;
+import com.ivigilate.android.library.classes.DeviceProvisioning;
+import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.Settings;
@@ -23,13 +24,14 @@ import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.PhoneUtils;
 
+import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
+
 import java.lang.reflect.Type;
 import java.util.HashMap;
 
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-import retrofit.mime.TypedByteArray;
 
 public class IVigilateManager {
     private static final long INTERVAL_CHECK_SERVICE_ALIVE = 20 * 1000; // unit: ms
@@ -48,6 +50,7 @@ public class IVigilateManager {
     private static WifiManager.WifiLock mWifiLock;
 
     private static IVigilateManager mInstance;
+    private static BackgroundPowerSaver mBackgroundPowerSaver;
 
     private IVigilateManager(Context context) {
         mContext = context;
@@ -60,6 +63,10 @@ public class IVigilateManager {
         if (mInstance == null) {
             Logger.d("IVigilateManager instance creation.");
             mInstance = new IVigilateManager(context);
+
+            // Simply constructing this class and holding a reference to it in your custom Application class
+            // enables auto battery saving of about 60%
+            mBackgroundPowerSaver = new BackgroundPowerSaver(context);
         }
         return mInstance;
     }
@@ -203,9 +210,9 @@ public class IVigilateManager {
                 if (mSettings.getUser() != null) {
                     mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser().token);
 
-                    Device device = new Device(Device.Type.DetectorUser, PhoneUtils.getDeviceUniqueId(mContext), mSettings.getUser().email);
-                    device.metadata = String.format("{\"device\": {\"model\": \"%s\"}}", PhoneUtils.getDeviceName());
-                    provisionDevice(device, null);
+                    DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.Type.DetectorUser, PhoneUtils.getDeviceUniqueId(mContext), mSettings.getUser().email);
+                    deviceProvisioning.metadata = String.format("{\"device\": {\"model\": \"%s\"}}", PhoneUtils.getDeviceName());
+                    provisionDevice(deviceProvisioning, null);
 
                     if (callback != null) callback.success(result.data);
                 } else {
@@ -265,11 +272,11 @@ public class IVigilateManager {
         });
     }
 
-    public void provisionDevice(final Device device, final IVigilateApiCallback<Void> callback) {
-        mApi.provisionDevice(device, new Callback<ApiResponse<Void>>() {
+    public void provisionDevice(final DeviceProvisioning deviceProvisioning, final IVigilateApiCallback<Void> callback) {
+        mApi.provisionDevice(deviceProvisioning, new Callback<ApiResponse<Void>>() {
             @Override
             public void success(ApiResponse<Void> result, Response response) {
-                Logger.i("Device '" + device.uid + "' of type '" + device.type.toString() + "' provisioned successfully.");
+                Logger.i("Device '" + deviceProvisioning.uid + "' of type '" + deviceProvisioning.type.toString() + "' provisioned successfully.");
                 mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
 
                 if (callback != null) callback.success(null);
@@ -300,9 +307,9 @@ public class IVigilateManager {
         return mSettings;
     }
 
-    protected void onDeviceSighted(String mac, String uid, int rssi) {
+    protected void onDeviceSighting(DeviceSighting deviceSighting) {
         if (mSightingListener != null) {
-            mSightingListener.onDeviceSighted(mac, uid, rssi);
+            mSightingListener.onDeviceSighting(deviceSighting);
         }
     }
 

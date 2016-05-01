@@ -9,15 +9,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ivigilate.android.app.R;
+import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.utils.StringUtils;
 
 import java.util.LinkedHashMap;
 
 public class SightingAdapter extends BaseAdapter {
 
-    private final LinkedHashMap<String, SimpleSighting> mValues;
+    private final LinkedHashMap<String, DeviceSighting> mValues;
 
-    public SightingAdapter(LinkedHashMap<String, SimpleSighting> values) {
+    public SightingAdapter(LinkedHashMap<String, DeviceSighting> values) {
         mValues = values;
     }
 
@@ -27,7 +28,7 @@ public class SightingAdapter extends BaseAdapter {
     }
 
     @Override
-    public SimpleSighting getItem(int position) {
+    public DeviceSighting getItem(int position) {
         return  mValues.get(mValues.keySet().toArray()[position]);
     }
 
@@ -46,15 +47,23 @@ public class SightingAdapter extends BaseAdapter {
         //set the icon like so: ivType.setImageResource(R.drawable.no);
 
         TextView tvMacValue = (TextView) rowView.findViewById(R.id.tvMacValue);
-        String mac = getItem(position).mac;
+        String mac = getItem(position).getMac();
         tvMacValue.setText(mac != null ? mac : "");
 
         TextView tvRssiValue = (TextView) rowView.findViewById(R.id.tvRssiValue);
-        tvRssiValue.setText(Integer.toString(getItem(position).rssi));
+        tvRssiValue.setText(Integer.toString(getItem(position).getRssi()));
 
-        TextView tvUidValue = (TextView) rowView.findViewById(R.id.tvUuidValue);
-        String uid = getItem(position).uuid;
-        tvUidValue.setText(!StringUtils.isNullOrBlank(uid) ? uid : "N/A");
+        TextView tvUuidValue = (TextView) rowView.findViewById(R.id.tvUuidValue);
+        String uuid = getItem(position).getUUID();
+        tvUuidValue.setText(!StringUtils.isNullOrBlank(uuid) ? uuid : "N/A");
+
+        TextView tvDataValue = (TextView) rowView.findViewById(R.id.tvDataValue);
+        String data = getItem(position).getData();
+        tvDataValue.setText(!StringUtils.isNullOrBlank(data) ? data : "N/A");
+
+        TextView tvManufacturerValue = (TextView) rowView.findViewById(R.id.tvManufacturerValue);
+        String manufacturer = getItem(position).getManufacturer();
+        tvManufacturerValue.setText(!StringUtils.isNullOrBlank(manufacturer) ? manufacturer : "N/A");
 
         return rowView;
     }

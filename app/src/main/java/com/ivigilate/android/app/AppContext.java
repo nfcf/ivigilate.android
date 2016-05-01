@@ -17,7 +17,7 @@ public class AppContext extends Application {
         super.onCreate();
 
         ACRA.init(this);
-
+        
         Logger.i("Finished...");
     }
 
