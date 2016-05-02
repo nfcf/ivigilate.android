@@ -12,7 +12,6 @@ import org.acra.annotation.ReportsCrashes;
 //TODO: Going to need to update the ACRA to use a different backend (instead of google forms) as it is no longer supported...
 @ReportsCrashes(formKey = "", mailTo = "nunofcf@gmail.com", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_text)
 public class AppContext extends Application {
-
     private IVigilateManager mIVigilateManager;
 
     @Override
@@ -28,6 +27,10 @@ public class AppContext extends Application {
         mIVigilateManager.setLocationRequestPriority(IVigilateManager.LOCATION_REQUEST_PRIORITY_LOW_POWER);
         
         Logger.i("Finished...");
+    }
+
+    public IVigilateManager getIVigilateManager() {
+        return mIVigilateManager;
     }
 
 }
