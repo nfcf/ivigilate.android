@@ -24,7 +24,6 @@ public class AppContext extends Application {
         mIVigilateManager = IVigilateManager.getInstance(this);
         mIVigilateManager.setServiceSendInterval(1 * 1000);
         mIVigilateManager.setServiceStateChangeInterval(10 * 1000);
-        mIVigilateManager.setLocationRequestPriority(IVigilateManager.LOCATION_REQUEST_PRIORITY_LOW_POWER);
         
         Logger.i("Finished...");
     }

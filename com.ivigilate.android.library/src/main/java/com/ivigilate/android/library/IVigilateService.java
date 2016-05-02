@@ -94,9 +94,9 @@ public class IVigilateService extends Service implements
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
 
-        mBeaconManager.setForegroundScanPeriod(1100);  // default 1100
+        mBeaconManager.setForegroundScanPeriod(1400);  // default 1100
         mBeaconManager.setForegroundBetweenScanPeriod(500);  // default 0
-        mBeaconManager.setBackgroundScanPeriod(2100);  //default 10000
+        mBeaconManager.setBackgroundScanPeriod(2400);  //default 10000
         mBeaconManager.setBackgroundBetweenScanPeriod(1000);  // default 5 * 60 * 1000
 
         Logger.i("Finished...");
