@@ -8,6 +8,8 @@ import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
@@ -35,6 +37,11 @@ import retrofit.client.Response;
 
 public class IVigilateManager {
     private static final long INTERVAL_CHECK_SERVICE_ALIVE = 20 * 1000; // unit: ms
+
+    public static final int LOCATION_REQUEST_PRIORITY_HIGH_ACCURACY = 100;
+    public static final int LOCATION_REQUEST_PRIORITY_BALANCED_POWER_ACCURACY = 102;
+    public static final int LOCATION_REQUEST_PRIORITY_LOW_POWER = 104;
+    public static final int LOCATION_REQUEST_PRIORITY_NO_POWER = 105;
 
     private Context mContext;
     private Settings mSettings;
@@ -113,15 +120,15 @@ public class IVigilateManager {
         mSettings.setServiceStateChangeInterval(intervalInMilliSeconds);
     }
 
-    public String getServiceSendSightingMetadata() {
-        return mSettings.getServiceSendSightingMetadata();
+    public JsonObject getServiceSightingMetadata() {
+        return mSettings.getServiceSightingMetadata();
     }
 
-    public void setServiceSightingMetadata(String json) {
-        mSettings.setServiceSendSightingMetadata(json);
+    public void setServiceSightingMetadata(JsonObject value) {
+        mSettings.setServiceSightingMetadata(value);
     }
 
-    protected long getLocationRequestInterval() {
+    protected int getLocationRequestInterval() {
         return mSettings.getLocationRequestInterval();
     }
 
@@ -143,6 +150,14 @@ public class IVigilateManager {
 
     public void setLocationRequestSmallestDisplacement(int distanceInMeters) {
         mSettings.setLocationRequestSmallestDisplacement(distanceInMeters);
+    }
+
+    public void setLocationRequestPriority(int locationRequestPriority) {
+        mSettings.setLocationRequestPriority(locationRequestPriority);
+    }
+
+    protected int getLocationRequestPriority() {
+        return mSettings.getLocationRequestPriority();
     }
 
     public User getUser() {
@@ -210,8 +225,15 @@ public class IVigilateManager {
                 if (mSettings.getUser() != null) {
                     mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser().token);
 
-                    DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.Type.DetectorUser, PhoneUtils.getDeviceUniqueId(mContext), mSettings.getUser().email);
-                    deviceProvisioning.metadata = String.format("{\"device\": {\"model\": \"%s\"}}", PhoneUtils.getDeviceName());
+                    JsonObject metadata = new JsonObject();
+                    JsonObject device = new JsonObject();
+                    device.addProperty("model", PhoneUtils.getDeviceName());
+                    metadata.add("device", device);
+                    DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.Type.DetectorUser,
+                            PhoneUtils.getDeviceUniqueId(mContext),
+                            mSettings.getUser().email,
+                            metadata);
+
                     provisionDevice(deviceProvisioning, null);
 
                     if (callback != null) callback.success(result.data);
@@ -225,7 +247,8 @@ public class IVigilateManager {
                 String error = retrofitError.getLocalizedMessage();
                 try {
                     Gson gson = new Gson();
-                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    Type type = new TypeToken<ApiResponse<String>>() {
+                    }.getType();
                     ApiResponse<String> errorObj = gson.fromJson(error, type);
                     mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
 
@@ -257,7 +280,8 @@ public class IVigilateManager {
                 String error = retrofitError.getLocalizedMessage();
                 try {
                     Gson gson = new Gson();
-                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    Type type = new TypeToken<ApiResponse<String>>() {
+                    }.getType();
                     ApiResponse<String> errorObj = gson.fromJson(error, type);
                     mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
 
@@ -303,9 +327,7 @@ public class IVigilateManager {
     }
 
 
-    protected Settings getSettings() {
-        return mSettings;
-    }
+
 
     protected void onDeviceSighting(DeviceSighting deviceSighting) {
         if (mSightingListener != null) {
@@ -318,7 +340,6 @@ public class IVigilateManager {
             mLocationListener.onLocationChanged(location);
         }
     }
-
 
     private void setKeepServiceAliveAlarm() {
         Intent i = new Intent(mContext, IVigilateServiceController.class);
@@ -345,5 +366,6 @@ public class IVigilateManager {
             mContext.stopService(IVigilateServiceController.getServiceIntent());
         }
     }
+
 
 }

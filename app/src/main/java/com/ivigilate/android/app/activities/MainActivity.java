@@ -29,6 +29,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
 import com.ivigilate.android.app.BuildConfig;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.library.IVigilateManager;
@@ -40,6 +41,7 @@ import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.app.interfaces.IProfileQuery;
 import com.ivigilate.android.app.R;
 import com.ivigilate.android.app.utils.Logger;
+import com.ivigilate.android.library.utils.PhoneUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -76,6 +78,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         mIVigilateManager = IVigilateManager.getInstance(this);
         mIVigilateManager.setServiceSendInterval(1 * 1000);
         mIVigilateManager.setServiceStateChangeInterval(10 * 1000);
+        mIVigilateManager.setLocationRequestPriority(IVigilateManager.LOCATION_REQUEST_PRIORITY_LOW_POWER);
 
         mSightings = new LinkedHashMap<String, DeviceSighting>();
 
@@ -195,10 +198,16 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
-                final DeviceSighting sighting = (DeviceSighting) parent.getItemAtPosition(position);
-                Toast.makeText(getApplicationContext(), "Provisioning mobile beacon...", Toast.LENGTH_SHORT);
+                final DeviceSighting deviceSighting = (DeviceSighting) parent.getItemAtPosition(position);
+                //TODO: the toasts need to runOnUiThread...
+                Toast.makeText(getApplicationContext(), "Provisioning device...", Toast.LENGTH_SHORT);
 
-                DeviceProvisioning d = new DeviceProvisioning(DeviceProvisioning.Type.BeaconMovable, sighting.getMac(), "Test");
+                JsonObject metadata = new JsonObject();
+                JsonObject device = new JsonObject();
+                device.addProperty("manufacturer", deviceSighting.getManufacturer());
+                metadata.add("device", device);
+                DeviceProvisioning d = new DeviceProvisioning(DeviceProvisioning.Type.BeaconMovable, deviceSighting.getMac(), "Test", metadata);
+
                 mIVigilateManager.provisionDevice(d, new IVigilateApiCallback<Void>() {
                     @Override
                     public void success(Void data) {
@@ -207,7 +216,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
                     @Override
                     public void failure(String errorMsg) {
-                        Toast.makeText(getApplicationContext(), "Failed!", Toast.LENGTH_SHORT);
+                        Toast.makeText(getApplicationContext(), "Failed! Error:" + errorMsg, Toast.LENGTH_SHORT);
                     }
                 });
 

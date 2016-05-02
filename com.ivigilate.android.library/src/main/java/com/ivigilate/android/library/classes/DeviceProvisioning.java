@@ -1,5 +1,8 @@
 package com.ivigilate.android.library.classes;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class DeviceProvisioning {
@@ -29,10 +32,12 @@ public class DeviceProvisioning {
         this.name = name;
     }
 
-    public DeviceProvisioning(Type type, String uid, String name, String metadata) {
+    public DeviceProvisioning(Type type, String uid, String name, JsonObject metadata) {
         this.type = type;
         this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
         this.name = name;
-        this.metadata = metadata;
+
+        Gson gson = new Gson();
+        this.metadata = gson.toJson(metadata);
     }
 }

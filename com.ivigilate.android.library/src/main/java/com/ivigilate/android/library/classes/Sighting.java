@@ -1,5 +1,7 @@
 package com.ivigilate.android.library.classes;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 
 public class Sighting {
@@ -27,7 +29,7 @@ public class Sighting {
         this.is_active = true;
     }
 
-    public Sighting(long timestamp, Type type, String detector_uid, int detector_battery, String beacon_mac, String beacon_uid, int beacon_battery, int rssi, GPSLocation location, String metadata){
+    public Sighting(long timestamp, Type type, String detector_uid, int detector_battery, String beacon_mac, String beacon_uid, int beacon_battery, int rssi, GPSLocation location, JsonObject metadata){
         this();
         this.timestamp = timestamp;
         this.type = type;
@@ -38,7 +40,9 @@ public class Sighting {
         this.beacon_battery = beacon_battery;
         this.rssi = rssi;
         this.location = location;
-        this.metadata = metadata;
+
+        Gson gson = new Gson();
+        this.metadata = gson.toJson(metadata);
     }
 
     public String getKey() {

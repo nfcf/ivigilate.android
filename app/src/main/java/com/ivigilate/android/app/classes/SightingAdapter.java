@@ -43,9 +43,6 @@ public class SightingAdapter extends BaseAdapter {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.sighting, parent, false);
 
-        ImageView ivType = (ImageView) rowView.findViewById(R.id.ivType);
-        //set the icon like so: ivType.setImageResource(R.drawable.no);
-
         TextView tvMacValue = (TextView) rowView.findViewById(R.id.tvMacValue);
         String mac = getItem(position).getMac();
         tvMacValue.setText(mac != null ? mac : "");
@@ -64,6 +61,11 @@ public class SightingAdapter extends BaseAdapter {
         TextView tvManufacturerValue = (TextView) rowView.findViewById(R.id.tvManufacturerValue);
         String manufacturer = getItem(position).getManufacturer();
         tvManufacturerValue.setText(!StringUtils.isNullOrBlank(manufacturer) ? manufacturer : "N/A");
+
+        TextView tvTypeValue = (TextView) rowView.findViewById(R.id.tvTypeValue);
+        String type = getItem(position).getBleType();
+        tvTypeValue.setText(!StringUtils.isNullOrBlank(type) ? type : "N/A");
+
 
         return rowView;
     }

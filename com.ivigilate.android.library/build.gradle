@@ -69,4 +69,6 @@ artifactory {
     }
 }
 
+// path_to_gradle/gradle assembleRelease artifactoryPublish
+
 

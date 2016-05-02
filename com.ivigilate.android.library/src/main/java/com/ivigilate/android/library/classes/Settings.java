@@ -3,7 +3,10 @@ package com.ivigilate.android.library.classes;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.google.android.gms.location.LocationRequest;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -19,6 +22,7 @@ public class Settings {
 	private static final int DEFAULT_LOCATION_REQUEST_INTERVAL = 30 * 1000;
 	private static final int DEFAULT_LOCATION_REQUEST_FASTEST_INTERVAL = 20 * 1000;
 	private static final int DEFAULT_LOCATION_REQUEST_SMALLEST_DISPLACEMENT = 10;
+	private static final int DEFAULT_LOCATION_REQUEST_PRIORITY = LocationRequest.PRIORITY_LOW_POWER;
 
 	public static final String SETTINGS_SERVER_ADDRESS = "server_address";
 	public static final String SETTINGS_SERVER_TIME_OFFSET = "server_time_offset";
@@ -31,6 +35,7 @@ public class Settings {
 	public static final String SETTINGS_LOCATION_REQUEST_INTERVAL = "location_request_interval";
 	public static final String SETTINGS_LOCATION_REQUEST_FASTEST_INTERVAL = "location_request_fastest_interval";
 	public static final String SETTINGS_LOCATION_REQUEST_SMALLEST_DISPLACEMENT = "location_request_smallest_displacement";
+	public static final String SETTINGS_LOCATION_REQUEST_PRIORITY = "location_request_priority";
 	public static final String SETTINGS_USER = "user";
 
 	public SharedPreferences sharedPreferences;
@@ -53,7 +58,12 @@ public class Settings {
 	public HashMap<String, Sighting> getServiceActiveSightings() {
 		Type type = new TypeToken<HashMap<String, Sighting>>() {
 		}.getType();
-		return gson.fromJson(sharedPreferences.getString(SETTINGS_SERVICE_ACTIVE_SIGHTINGS, "{}"), type);
+        try {
+            return gson.fromJson(sharedPreferences.getString(SETTINGS_SERVICE_ACTIVE_SIGHTINGS, "{}"), type);
+        } catch (Exception ex) {
+            return gson.fromJson("{}", type);
+        }
+
 	}
 
 	public void setServiceActiveSightings(HashMap<String, Sighting> activeSightings){
@@ -70,10 +80,12 @@ public class Settings {
 	public void setServiceStateChangeInterval(int value) {
 		sharedPreferences.edit().putInt(SETTINGS_SERVICE_STATE_CHANGE_INTERVAL, value >= 0 ? value : DEFAULT_SERVICE_STATE_CHANGE_INTERVAL).commit(); }
 
-	public String getServiceSendSightingMetadata() { return sharedPreferences.getString(SETTINGS_SERVICE_SIGHTING_METADATA, ""); }
+	public JsonObject getServiceSightingMetadata() {
+		JsonParser parser = new JsonParser();
+		return parser.parse(sharedPreferences.getString(SETTINGS_SERVICE_SIGHTING_METADATA, "{}")).getAsJsonObject();
+	}
 
-	public void setServiceSendSightingMetadata(String value){ sharedPreferences.edit().putString(SETTINGS_SERVICE_SIGHTING_METADATA, value != null ? value : "").commit(); }
-
+	public void setServiceSightingMetadata(JsonObject value){ sharedPreferences.edit().putString(SETTINGS_SERVICE_SIGHTING_METADATA, value != null ? value.toString() : "{}").commit(); }
 
 	public int getLocationRequestInterval() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_INTERVAL, DEFAULT_LOCATION_REQUEST_INTERVAL); }
 
@@ -86,6 +98,10 @@ public class Settings {
 	public int getLocationRequestSmallestDisplacement() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_SMALLEST_DISPLACEMENT, DEFAULT_LOCATION_REQUEST_SMALLEST_DISPLACEMENT); }
 
 	public void setLocationRequestSmallestDisplacement(int value){ sharedPreferences.edit().putInt(SETTINGS_LOCATION_REQUEST_SMALLEST_DISPLACEMENT, value > 0 ? value : DEFAULT_LOCATION_REQUEST_SMALLEST_DISPLACEMENT).commit(); }
+
+	public int getLocationRequestPriority() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_PRIORITY, DEFAULT_LOCATION_REQUEST_PRIORITY); }
+
+	public void setLocationRequestPriority(int value){ sharedPreferences.edit().putInt(SETTINGS_LOCATION_REQUEST_PRIORITY, value > 0 ? value : DEFAULT_LOCATION_REQUEST_PRIORITY).commit(); }
 
 	public User getUser() {
 		String userString = sharedPreferences.getString(SETTINGS_USER, null);
