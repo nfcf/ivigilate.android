@@ -1,14 +1,20 @@
 package com.ivigilate.android.app.activities;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
@@ -41,13 +47,14 @@ import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.app.interfaces.IProfileQuery;
 import com.ivigilate.android.app.R;
 import com.ivigilate.android.app.utils.Logger;
-import com.ivigilate.android.library.utils.PhoneUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
+    private static final int PERMISSIONS_REQUEST = 1;
+
     // UI references.
     private ImageView mIvLogout;
     private ScrollView mSvLogin;
@@ -85,6 +92,8 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         bindControls();
 
         showHideViews();
+
+        checkRequiredPermissions();
 
         Logger.d("Finished.");
     }
@@ -219,9 +228,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
                         Toast.makeText(getApplicationContext(), "Failed! Error:" + errorMsg, Toast.LENGTH_SHORT);
                     }
                 });
-
             }
-
         });
     }
 
@@ -254,8 +261,55 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    private void checkRequiredPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.READ_CONTACTS},
+                    PERMISSIONS_REQUEST);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    Logger.d("Coarse location permission granted");
+                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+                    });
+                    builder.show();
+                } else if (grantResults[1] == PackageManager.PERMISSION_DENIED) {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("This app needs to be able to access the device's IMEI to be able to function properly.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+                    });
+                    builder.show();
+                }
+                return;
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
     private void populateAutoComplete() {
-        getLoaderManager().initLoader(0, null, this);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            getLoaderManager().initLoader(0, null, this);
+        }
     }
 
     public void attemptLogin() {
@@ -316,27 +370,27 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this,
-                // Retrieve data rows for the device user's 'profile' contact.
-                Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
-                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY), IProfileQuery.PROJECTION,
-                // Select only email addresses.
-                ContactsContract.Contacts.Data.MIMETYPE +
-                        " = ?", new String[]{ContactsContract.CommonDataKinds.Email
-                .CONTENT_ITEM_TYPE},
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
-                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
+            return new CursorLoader(this,
+                    // Retrieve data rows for the device user's 'profile' contact.
+                    Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
+                            ContactsContract.Contacts.Data.CONTENT_DIRECTORY), IProfileQuery.PROJECTION,
+                    // Select only email addresses.
+                    ContactsContract.Contacts.Data.MIMETYPE +
+                            " = ?", new String[]{ContactsContract.CommonDataKinds.Email
+                    .CONTENT_ITEM_TYPE},
+                    // Show primary email addresses first. Note that there won't be
+                    // a primary email address if the user hasn't specified one.
+                    ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         List<String> emails = new ArrayList<String>();
-        cursor.moveToFirst();
-        while (!cursor.isAfterLast()) {
-            emails.add(cursor.getString(IProfileQuery.ADDRESS));
-            cursor.moveToNext();
-        }
+            cursor.moveToFirst();
+            while (!cursor.isAfterLast()) {
+                emails.add(cursor.getString(IProfileQuery.ADDRESS));
+                cursor.moveToNext();
+            }
 
         addEmailsToAutoComplete(emails);
     }

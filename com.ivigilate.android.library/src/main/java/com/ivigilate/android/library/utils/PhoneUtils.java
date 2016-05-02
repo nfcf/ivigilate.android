@@ -1,11 +1,14 @@
 package com.ivigilate.android.library.utils;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.BatteryManager;
@@ -20,9 +23,14 @@ public class PhoneUtils {
         return imei != null ? imei : getAndroidId(context);
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private static String getIMEI(Context context) {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        return tm != null ? tm.getDeviceId() : null;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            return tm != null ? tm.getDeviceId() : null;
+        }
+        return null;
     }
 
     private static String getAndroidId(Context context) {
