@@ -36,6 +36,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
+import com.ivigilate.android.app.AppContext;
 import com.ivigilate.android.app.BuildConfig;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.library.IVigilateManager;
@@ -68,7 +69,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
     private Button mBtnStartStop;
 
-    private IVigilateManager mIVigilateManager;
+
 
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSighting> mSightings;
@@ -82,11 +83,6 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
         setContentView(R.layout.main_activity);
 
-        mIVigilateManager = IVigilateManager.getInstance(this);
-        mIVigilateManager.setServiceSendInterval(1 * 1000);
-        mIVigilateManager.setServiceStateChangeInterval(10 * 1000);
-        mIVigilateManager.setLocationRequestPriority(IVigilateManager.LOCATION_REQUEST_PRIORITY_LOW_POWER);
-
         mSightings = new LinkedHashMap<String, DeviceSighting>();
 
         bindControls();
@@ -98,13 +94,17 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         Logger.d("Finished.");
     }
 
+    private IVigilateManager getIVigilateManager() {
+        return ((AppContext)getApplicationContext()).getIVigilateManager();
+    }
+
     private void bindControls() {
         ImageView ivLogo = (ImageView) findViewById(R.id.ivLogo);
         ivLogo.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 Logger.d("Opening website...");
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(mIVigilateManager.getServerAddress()));
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(getIVigilateManager().getServerAddress()));
                 startActivity(i);
             }
         });
@@ -114,8 +114,8 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
             @Override
             public void onClick(View view) {
                 Logger.d("Logging out...");
-                mIVigilateManager.stopService();
-                mIVigilateManager.logout(null);
+                getIVigilateManager().stopService();
+                getIVigilateManager().logout(null);
 
                 showHideViews();
             }
@@ -127,7 +127,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
         // Set up the login form.
         mServerView = (EditText) findViewById(R.id.etServer);
-        mServerView.setText(mIVigilateManager.getServerAddress());
+        mServerView.setText(getIVigilateManager().getServerAddress());
         if (BuildConfig.DEBUG) {
             mServerView.setVisibility(View.VISIBLE);
         } else {
@@ -160,7 +160,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
             public void onClick(View view) {
                 if (isScanning) {
                     mBtnStartStop.setText("SCAN");
-                    mIVigilateManager.setSightingListener(null);
+                    getIVigilateManager().setSightingListener(null);
                     mSightings.clear();
 
                     runOnUiThread(new Runnable() {
@@ -171,13 +171,13 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
                     });
                 } else {
                     mBtnStartStop.setText("STOP");
-                    mIVigilateManager.setSightingListener(new ISightingListener() {
+                    getIVigilateManager().setSightingListener(new ISightingListener() {
                         @Override
                         public void onDeviceSighting(final DeviceSighting deviceSighting) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    String key =  deviceSighting.getMac() + "|" + deviceSighting.getUUID();
+                                    String key = deviceSighting.getMac() + "|" + deviceSighting.getUUID();
 
                                     mSightings.put(key, deviceSighting);
 
@@ -217,7 +217,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
                 metadata.add("device", device);
                 DeviceProvisioning d = new DeviceProvisioning(DeviceProvisioning.Type.BeaconMovable, deviceSighting.getMac(), "Test", metadata);
 
-                mIVigilateManager.provisionDevice(d, new IVigilateApiCallback<Void>() {
+                getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<Void>() {
                     @Override
                     public void success(Void data) {
                         Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT);
@@ -233,7 +233,7 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
     }
 
     private void showHideViews() {
-        if (mIVigilateManager.getUser() != null) {
+        if (getIVigilateManager().getUser() != null) {
             Logger.d("User is already logged in.");
 
             mIvLogout.setVisibility(View.VISIBLE);
@@ -242,9 +242,9 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
             mLvSightings.setVisibility(View.VISIBLE);
 
-            mEmailView.setText(mIVigilateManager.getUser().email);
+            mEmailView.setText(getIVigilateManager().getUser().email);
 
-            mIVigilateManager.startService();
+            getIVigilateManager().startService();
 
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
@@ -412,8 +412,8 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
         try {
             Logger.d("Started...");
 
-            mIVigilateManager.setServerAddress(serverAddress);
-            mIVigilateManager.login(new User(email, password), new IVigilateApiCallback<User>() {
+            getIVigilateManager().setServerAddress(serverAddress);
+            getIVigilateManager().login(new User(email, password), new IVigilateApiCallback<User>() {
                 @Override
                 public void success(User user) {
                     showProgress(false);
