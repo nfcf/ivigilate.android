@@ -47,7 +47,8 @@ public class DeviceSighting {
     public String getUUID() {
         if (getPayload().length() > 50) {
             String uuid = getPayload().substring(18, 50);
-            return uuid.contains("0000") ? "" : uuid;
+            return !getManufacturer().contains("4C00") &&
+                    uuid.contains("0000") ? "" : uuid;
         } else {
             return "";
         }
