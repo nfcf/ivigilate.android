@@ -27,6 +27,9 @@ public class BleAdvUtils {
             case MANUFACTURER_MOOV:
                 knownDescription = "(Moov)";
                 break;
+            case MANUFACTURER_TI:
+                knownDescription = "(TI)";
+                break;
 
             default:
                 knownDescription = "(Unknown)";
@@ -42,5 +45,6 @@ public class BleAdvUtils {
     private static final int MANUFACTURER_FOREVER = 0x7665;
     private static final int MANUFACTURER_GIMBAL = 0xa0c6; //"ad7700c6";
     private static final int MANUFACTURER_JABRA = 0x180d;
+    private static final int MANUFACTURER_TI = 0xaa80;
 
 }

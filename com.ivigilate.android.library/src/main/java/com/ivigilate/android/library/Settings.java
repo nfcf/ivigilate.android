@@ -1,4 +1,4 @@
-package com.ivigilate.android.library.classes;
+package com.ivigilate.android.library;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -8,11 +8,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import com.ivigilate.android.library.classes.Sighting;
+import com.ivigilate.android.library.classes.User;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
 
-public class Settings {
+class Settings {
 	private static final String SETTINGS_FILENAME = "com.ivigilate.android.settings";
 
 	private static final String DEFAULT_SERVER_ADDRESS = "https://portal.ivigilate.com";
@@ -27,6 +29,7 @@ public class Settings {
 	public static final String SETTINGS_SERVER_ADDRESS = "server_address";
 	public static final String SETTINGS_SERVER_TIME_OFFSET = "server_time_offset";
 
+    public static final String SETTINGS_SERVICE_ENABLED = "service_enabled";
 	public static final String SETTINGS_SERVICE_ACTIVE_SIGHTINGS = "service_current_sightings";
 	public static final String SETTINGS_SERVICE_SEND_INTERVAL = "service_send_interval";
 	public static final String SETTINGS_SERVICE_STATE_CHANGE_INTERVAL = "service_state_change_interval";
@@ -55,6 +58,10 @@ public class Settings {
 	public void setServerTimeOffset(long value){ sharedPreferences.edit().putLong(SETTINGS_SERVER_TIME_OFFSET, value).commit(); }
 
 
+    public boolean getServiceEnabled() { return sharedPreferences.getBoolean(SETTINGS_SERVICE_ENABLED, false); }
+
+    public void setServiceEnabled(boolean value){ sharedPreferences.edit().putBoolean(SETTINGS_SERVICE_ENABLED, value).commit(); }
+
 	public HashMap<String, Sighting> getServiceActiveSightings() {
 		Type type = new TypeToken<HashMap<String, Sighting>>() {
 		}.getType();
@@ -63,7 +70,6 @@ public class Settings {
         } catch (Exception ex) {
             return gson.fromJson("{}", type);
         }
-
 	}
 
 	public void setServiceActiveSightings(HashMap<String, Sighting> activeSightings){

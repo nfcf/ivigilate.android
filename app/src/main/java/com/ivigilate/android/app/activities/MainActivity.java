@@ -69,8 +69,6 @@ public class MainActivity extends Activity implements LoaderCallbacks<Cursor> {
 
     private Button mBtnStartStop;
 
-
-
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSighting> mSightings;
 

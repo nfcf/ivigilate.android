@@ -10,7 +10,7 @@ import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
 //TODO: Going to need to update the ACRA to use a different backend (instead of google forms) as it is no longer supported...
-@ReportsCrashes(formKey = "", mailTo = "nunofcf@gmail.com", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_text)
+@ReportsCrashes(formKey = "", mailTo = "support@ivigilate.com", mode = ReportingInteractionMode.TOAST, forceCloseDialogAfterToast = false, resToastText = R.string.crash_text)
 public class AppContext extends Application {
     private IVigilateManager mIVigilateManager;
 

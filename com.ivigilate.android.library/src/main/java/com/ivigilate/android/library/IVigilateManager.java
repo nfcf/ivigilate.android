@@ -16,7 +16,6 @@ import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
 import com.ivigilate.android.library.classes.Rest;
-import com.ivigilate.android.library.classes.Settings;
 import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.classes.User;
 import com.ivigilate.android.library.interfaces.ILocationListener;
@@ -72,7 +71,7 @@ public class IVigilateManager {
             mInstance = new IVigilateManager(context);
 
             // Simply constructing this class and holding a reference to it in your custom Application class
-            // enables auto battery saving of about 60%
+            // enables auto battery saving "of about 60%"
             mBackgroundPowerSaver = new BackgroundPowerSaver(context);
         }
         return mInstance;
@@ -94,6 +93,10 @@ public class IVigilateManager {
 
     protected void setServerTimeOffset(long offset) {
         mSettings.setServerTimeOffset(offset);
+    }
+
+    protected boolean getServiceEnabled() {
+        return mSettings.getServiceEnabled();
     }
 
     protected HashMap<String, Sighting> getServiceActiveSightings() {
@@ -177,10 +180,14 @@ public class IVigilateManager {
     }
 
     public void startService() {
+        mSettings.setServiceEnabled(true);
+
         setKeepServiceAliveAlarm();
     }
 
     public void stopService() {
+        mSettings.setServiceEnabled(false);
+
         cancelKeepServiceAliveAlarm();
     }
 
