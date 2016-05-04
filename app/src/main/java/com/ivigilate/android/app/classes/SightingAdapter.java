@@ -45,7 +45,11 @@ public class SightingAdapter extends BaseAdapter {
 
         TextView tvMacValue = (TextView) rowView.findViewById(R.id.tvMacValue);
         String mac = getItem(position).getMac();
-        tvMacValue.setText(mac != null ? mac : "");
+        tvMacValue.setText(!StringUtils.isNullOrBlank(mac) ? mac : "N/A");
+
+        TextView tvNameValue = (TextView) rowView.findViewById(R.id.tvNameValue);
+        String name = getItem(position).getName();
+        tvNameValue.setText(name != null ? name : "(Unknown)");
 
         TextView tvRssiValue = (TextView) rowView.findViewById(R.id.tvRssiValue);
         tvRssiValue.setText(Integer.toString(getItem(position).getRssi()));

@@ -40,11 +40,30 @@
         android:padding="2dp"/>
 
 
-    <TextView android:id="@+id/tvManufacturerTitle"
+    <TextView android:id="@+id/tvNameTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@id/tvMacValue"
+        android:textColor="@color/abc_primary_text_material_light"
+        android:text="Name:"
+        android:padding="2dp"/>
+
+    <TextView android:id="@+id/tvNameValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/tvNameTitle"
+        android:layout_below="@id/tvMacValue"
+        android:textColor="@color/abc_secondary_text_material_light"
+        android:text="Device's name"
+        android:padding="2dp"/>
+
+
+    <TextView android:id="@+id/tvManufacturerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/tvNameValue"
         android:textColor="@color/abc_primary_text_material_light"
         android:text="Vendor:"
         android:padding="2dp"/>
@@ -53,7 +72,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/tvManufacturerTitle"
-        android:layout_below="@id/tvMacValue"
+        android:layout_below="@id/tvNameValue"
         android:textColor="@color/abc_secondary_text_material_light"
         android:text="4c00 (Apple)"
         android:padding="2dp"/>
@@ -62,7 +81,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/tvManufacturerValue"
-        android:layout_below="@id/tvMacValue"
+        android:layout_below="@id/tvNameValue"
         android:textColor="@color/abc_primary_text_material_light"
         android:text="Type:"
         android:paddingLeft="20dp"
@@ -72,7 +91,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/tvTypeTitle"
-        android:layout_below="@id/tvMacValue"
+        android:layout_below="@id/tvNameValue"
         android:textColor="@color/abc_secondary_text_material_light"
         android:text="0215"
         android:padding="2dp"/>

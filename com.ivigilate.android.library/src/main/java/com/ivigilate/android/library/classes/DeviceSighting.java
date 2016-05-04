@@ -22,7 +22,15 @@ public class DeviceSighting {
     }
 
     public String getMac() {
-        return mBluetoothDevice.getAddress().replace(":", "");
+        if (getManufacturer().contains("C6A0")) {
+            return "";
+        } else {
+            return mBluetoothDevice.getAddress().replace(":", "");
+        }
+    }
+
+    public String getName() {
+        return mBluetoothDevice.getName();
     }
 
     public String getManufacturer() {
@@ -56,10 +64,10 @@ public class DeviceSighting {
 
     public String getData() {
         if (getUUID() == "" && getPayload().length() > 18) {
-            return getPayload().substring(18);
+            return StringUtils.trimRight(getPayload().substring(18), '0');
         }
         else if (getPayload().length() > 50) {
-            return getPayload().substring(50);
+            return StringUtils.trimRight(getPayload().substring(50), '0');
         } else {
             return "";
         }

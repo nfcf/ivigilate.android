@@ -35,7 +35,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class IVigilateManager {
-    private static final long INTERVAL_CHECK_SERVICE_ALIVE = 20 * 1000; // unit: ms
+    private static final long INTERVAL_CHECK_SERVICE_ALIVE = 15 * 1000; // unit: ms
 
     public static final int LOCATION_REQUEST_PRIORITY_HIGH_ACCURACY = 100;
     public static final int LOCATION_REQUEST_PRIORITY_BALANCED_POWER_ACCURACY = 102;
