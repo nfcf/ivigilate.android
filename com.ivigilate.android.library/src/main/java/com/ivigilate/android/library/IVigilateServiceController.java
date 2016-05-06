@@ -13,12 +13,18 @@ public class IVigilateServiceController extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        startService(context);
+    }
+
+    public static void startService(Context context) {
         IVigilateManager iVigilateManager = IVigilateManager.getInstance(context);
 
         if (iVigilateManager.getServiceEnabled() &&
                 !isServiceRunning(context, IVigilateService.class)) {
             Logger.d("Starting IVigilateService...");
-            iVigilateManager.startService();  // this restarts the alarmManager if required...
+
+            iVigilateManager.setKeepServiceAliveAlarm();  // this restarts the alarmManager if required...
+
             sIVigilateServiceIntent = new Intent(context, IVigilateService.class);
             context.startService(sIVigilateServiceIntent);
         }

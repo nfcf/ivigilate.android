@@ -30,7 +30,8 @@ class Settings {
 	public static final String SETTINGS_SERVER_TIME_OFFSET = "server_time_offset";
 
     public static final String SETTINGS_SERVICE_ENABLED = "service_enabled";
-	public static final String SETTINGS_SERVICE_ACTIVE_SIGHTINGS = "service_current_sightings";
+	public static final String SETTINGS_SERVICE_IGNORE_SIGHTINGS = "service_ignore_sightings";
+	public static final String SETTINGS_SERVICE_ACTIVE_SIGHTINGS = "service_active_sightings";
 	public static final String SETTINGS_SERVICE_SEND_INTERVAL = "service_send_interval";
 	public static final String SETTINGS_SERVICE_STATE_CHANGE_INTERVAL = "service_state_change_interval";
 	public static final String SETTINGS_SERVICE_SIGHTING_METADATA = "service_sighting_metadata";
@@ -61,6 +62,20 @@ class Settings {
     public boolean getServiceEnabled() { return sharedPreferences.getBoolean(SETTINGS_SERVICE_ENABLED, false); }
 
     public void setServiceEnabled(boolean value){ sharedPreferences.edit().putBoolean(SETTINGS_SERVICE_ENABLED, value).commit(); }
+
+	public HashMap<String, Long> getServiceIgnoreSightings() {
+		Type type = new TypeToken<HashMap<String, Long>>() {
+		}.getType();
+		try {
+			return gson.fromJson(sharedPreferences.getString(SETTINGS_SERVICE_IGNORE_SIGHTINGS, "{}"), type);
+		} catch (Exception ex) {
+			return gson.fromJson("{}", type);
+		}
+	}
+
+	public void setServiceIgnoreSightings(HashMap<String, Long> ignoreSightings){
+		sharedPreferences.edit().putString(SETTINGS_SERVICE_IGNORE_SIGHTINGS, ignoreSightings != null ? gson.toJson(ignoreSightings) : "{}").commit();
+	}
 
 	public HashMap<String, Sighting> getServiceActiveSightings() {
 		Type type = new TypeToken<HashMap<String, Sighting>>() {

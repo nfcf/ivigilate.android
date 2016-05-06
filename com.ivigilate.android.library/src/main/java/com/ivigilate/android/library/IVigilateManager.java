@@ -35,7 +35,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class IVigilateManager {
-    private static final long INTERVAL_CHECK_SERVICE_ALIVE = 15 * 1000; // unit: ms
+    private static final long INTERVAL_CHECK_SERVICE_ALIVE = 30 * 1000; // unit: ms
 
     public static final int LOCATION_REQUEST_PRIORITY_HIGH_ACCURACY = 100;
     public static final int LOCATION_REQUEST_PRIORITY_BALANCED_POWER_ACCURACY = 102;
@@ -97,6 +97,14 @@ public class IVigilateManager {
 
     protected boolean getServiceEnabled() {
         return mSettings.getServiceEnabled();
+    }
+
+    protected HashMap<String, Long> getServiceIgnoreSightings() {
+        return mSettings.getServiceIgnoreSightings();
+    }
+
+    protected void setServiceIgnoreSightings(HashMap<String, Long> ignoreSightings) {
+        mSettings.setServiceIgnoreSightings(ignoreSightings);
     }
 
     protected HashMap<String, Sighting> getServiceActiveSightings() {
@@ -182,6 +190,10 @@ public class IVigilateManager {
     public void startService() {
         mSettings.setServiceEnabled(true);
 
+        // Start the service immediately if required
+        IVigilateServiceController.startService(mContext);
+
+        // Start AlarmManager to keep service alive every X seconds
         setKeepServiceAliveAlarm();
     }
 
@@ -348,7 +360,7 @@ public class IVigilateManager {
         }
     }
 
-    private void setKeepServiceAliveAlarm() {
+    protected void setKeepServiceAliveAlarm() {
         Intent i = new Intent(mContext, IVigilateServiceController.class);
         if (PendingIntent.getBroadcast(mContext, 0, i, PendingIntent.FLAG_NO_CREATE) == null) {
 
@@ -363,7 +375,7 @@ public class IVigilateManager {
         }
     }
 
-    private void cancelKeepServiceAliveAlarm() {
+    protected void cancelKeepServiceAliveAlarm() {
         if (mPendingIntentService != null) {
             if (mAlarmManager != null) mAlarmManager.cancel(mPendingIntentService);
             mPendingIntentService.cancel();

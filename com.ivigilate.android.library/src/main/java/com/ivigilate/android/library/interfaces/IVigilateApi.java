@@ -22,5 +22,5 @@ public interface IVigilateApi {
     void provisionDevice(@Body DeviceProvisioning deviceProvisioning, Callback<ApiResponse<Void>> cb);
 
     @POST("/api/v1/addsightings/") // this one does not require login
-    void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<Void>> cb);
+    void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<List<String>>> cb);
 }

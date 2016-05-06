@@ -46,6 +46,6 @@ public class Sighting {
     }
 
     public String getKey() {
-        return detector_uid + beacon_mac + beacon_uid;
+        return beacon_mac + beacon_uid;
     }
 }

@@ -35,6 +35,7 @@ import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.service.scanner.NonBeaconLeScanCallback;
 
 import java.lang.reflect.Type;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,7 @@ public class IVigilateService extends Service implements
         LocationListener, BeaconConsumer {
 
     private static String REGION_ID = "com.ivigilate.android.region";
+    private static final Long IGNORE_INTERVAL = 60 * 60 * 1000L;
 
     private GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
@@ -66,6 +68,8 @@ public class IVigilateService extends Service implements
 
     private IVigilateApi mApi;
 
+    private long mInvalidDetectorCheckTimestamp;
+    private HashMap<String, Long> mIgnoreSightings;
     private HashMap<String, Sighting> mActiveSightings;
 
     public IVigilateService() {
@@ -83,6 +87,7 @@ public class IVigilateService extends Service implements
 
         mIVigilateManager = IVigilateManager.getInstance(this);
 
+        mIgnoreSightings = mIVigilateManager.getServiceIgnoreSightings();
         mActiveSightings = mIVigilateManager.getServiceActiveSightings();
 
         buildGoogleApiAndLocationRequest();
@@ -245,23 +250,40 @@ public class IVigilateService extends Service implements
                         }
 
                         if (sightings.size() > 0) {
-                            mApi.addSightings(sightings, new Callback<ApiResponse<Void>>() {
+                            mApi.addSightings(sightings, new Callback<ApiResponse<List<String>>>() {
                                 @Override
-                                public void success(ApiResponse<Void> result, Response response) {
-                                    Logger.i("ApiThread sent " + sightings.size() + " onDeviceSighted(s) successfully.");
-                                    mIVigilateManager.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
+                                public void success(ApiResponse<List<String>> result, Response response) {
+                                    Logger.i("ApiThread sent " + sightings.size() + " onDeviceSighted(s) 'successfully'.");
+                                    final Long now = System.currentTimeMillis();
+                                    mIVigilateManager.setServerTimeOffset(result.timestamp - now);
+                                    mInvalidDetectorCheckTimestamp = 0L;
+
+                                    if (response.getStatus() == HttpURLConnection.HTTP_PARTIAL) {
+                                        if (result.data != null && result.data.size() > 0) {
+                                            synchronized (mIgnoreSightings) {
+                                                for (String ignoreSightingKey : result.data) {
+                                                    mIgnoreSightings.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
+                                                }
+                                                mIVigilateManager.setServiceIgnoreSightings(mIgnoreSightings);
+                                            }
+                                        }
+                                    }
                                 }
 
                                 @Override
                                 public void failure(RetrofitError retrofitError) {
                                     String error = retrofitError.getLocalizedMessage();
+                                    final Long now = System.currentTimeMillis();
                                     try {
                                         Gson gson = new Gson();
                                         Type type = new TypeToken<ApiResponse<String>>() {}.getType();
                                         ApiResponse<String> errorObj = gson.fromJson(error, type);
-                                        mIVigilateManager.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+                                        mIVigilateManager.setServerTimeOffset(errorObj.timestamp - now);
 
                                         error = errorObj.data;
+
+                                        //Detector or Account not valid / active
+                                        mInvalidDetectorCheckTimestamp = now + mIVigilateManager.getServerTimeOffset();
                                     } catch (Exception ex) {
                                         // Do nothing...
                                     }
@@ -317,18 +339,39 @@ public class IVigilateService extends Service implements
                             mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(), mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null,
                             mIVigilateManager.getServiceSightingMetadata());
 
-                    if (type == Sighting.Type.AutoClosing || !mActiveSightings.containsKey(sighting.getKey())) {
+                    boolean ignoreSighting = now - mInvalidDetectorCheckTimestamp < IGNORE_INTERVAL;
+                    if (!ignoreSighting) {
+                        synchronized (mIgnoreSightings) {
+                            if (mIgnoreSightings.containsKey(sighting.getKey())) {
+                                // Ignore sighting for IGNORE_INTERVAL
+                                if (now - mIgnoreSightings.get(sighting.getKey()) < IGNORE_INTERVAL) {
+                                    ignoreSighting = true;
+                                } else {
+                                    mIgnoreSightings.remove(sighting.getKey());
+                                    mIVigilateManager.setServiceIgnoreSightings(mIgnoreSightings);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!ignoreSighting &&
+                            (type == Sighting.Type.AutoClosing || !mActiveSightings.containsKey(sighting.getKey()))) {
                         synchronized(mDequeSightings) {
                             mDequeSightings.putLast(sighting); // Queue to be sent to server
                         }
                     }
 
-                    synchronized(mActiveSightings) {
-                        mActiveSightings.put(sighting.getKey(), sighting);
-                        mIVigilateManager.setServiceActiveSightings(mActiveSightings);
+                    if (!ignoreSighting) {
+                        // need to keep updating this ActiveSightings list as I'm comparing the timestamps...
+                        // that's why this is in a separate if and not included in the former
+                        synchronized (mActiveSightings) {
+                            mActiveSightings.put(sighting.getKey(), sighting);
+                            mIVigilateManager.setServiceActiveSightings(mActiveSightings);
+                        }
                     }
-                } else {
-                    Logger.d("Averaging packet with previous similar one as it happened less than X second(s) ago.");
+
+                } else{
+                        Logger.d("Averaging packet with previous similar one as it happened less than X second(s) ago.");
 
                     previous_item.rssi = (previous_item.rssi + rssi) / 2;
                     synchronized(mDequeSightings) {
@@ -338,7 +381,7 @@ public class IVigilateService extends Service implements
                 }
             }
         } catch (Exception ex) {
-            Logger.d("Failed to handleNonBeaconSighting with exception: " + ex.getMessage());
+            Logger.e("Failed to handleNonBeaconSighting with exception: " + ex.getMessage());
         }
     }
 
