@@ -1,26 +1,24 @@
 package com.ivigilate.android.app.activities;
 
-import android.Manifest;
-import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +48,9 @@ public class MainActivity extends BaseActivity {
     private LinkedHashMap<String, DeviceSighting> mSightings;
 
     private boolean isScanning;
+
+    private DeviceProvisioning.Type selectedType;
+    private DeviceProvisioning.UUID selectedUUID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,26 +164,8 @@ public class MainActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
                 final DeviceSighting deviceSighting = (DeviceSighting) parent.getItemAtPosition(position);
-                //TODO: the toasts need to runOnUiThread...
-                Toast.makeText(getApplicationContext(), "Provisioning device...", Toast.LENGTH_SHORT);
+                showProvisionDialog(deviceSighting);
 
-                JsonObject metadata = new JsonObject();
-                JsonObject device = new JsonObject();
-                device.addProperty("manufacturer", deviceSighting.getManufacturer());
-                metadata.add("device", device);
-                DeviceProvisioning d = new DeviceProvisioning(DeviceProvisioning.Type.BeaconMovable, deviceSighting.getMac(), "Test", metadata);
-
-                getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<Void>() {
-                    @Override
-                    public void success(Void data) {
-                        Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT);
-                    }
-
-                    @Override
-                    public void failure(String errorMsg) {
-                        Toast.makeText(getApplicationContext(), "Failed! Error:" + errorMsg, Toast.LENGTH_SHORT);
-                    }
-                });
             }
         });
     }
@@ -213,6 +196,133 @@ public class MainActivity extends BaseActivity {
             startActivityForResult(enableBtIntent, 1);
             return;
         }
+    }
+	
+	private void showProvisionDialog(final DeviceSighting deviceSighting){
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        View dialogView = inflater.inflate(R.layout.provision_dialog, null);
+        dialogBuilder.setView(dialogView);
+
+        dialogBuilder.setTitle("Provision Device");
+        dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                provisionDevice(deviceSighting);
+                dialog.dismiss();
+            }
+        });
+
+        dialogBuilder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        populateSpinners(dialogView, deviceSighting.getName());
+
+        AlertDialog alertDialog = dialogBuilder.create();
+        alertDialog.show();
+    }
+
+    private void populateSpinners(View dialogView, String deviceName){
+        Spinner spType = (Spinner) dialogView.findViewById(R.id.spinnerType);
+
+        ArrayAdapter<DeviceProvisioning.Type> typeArrayAdapter =
+                new ArrayAdapter<DeviceProvisioning.Type>(dialogView.getContext()
+                        , android.R.layout.simple_spinner_item
+                        , DeviceProvisioning.Type.values());
+
+        typeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spType.setAdapter(typeArrayAdapter);
+        spType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedType = (DeviceProvisioning.Type) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        Spinner spUUID = (Spinner) dialogView.findViewById(R.id.spinnerUUID);
+
+        ArrayAdapter<DeviceProvisioning.UUID> uuidArrayAdapter =
+                new ArrayAdapter<DeviceProvisioning.UUID>(dialogView.getContext()
+                        , android.R.layout.simple_spinner_item
+                        , DeviceProvisioning.UUID.values());
+
+        typeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spUUID.setAdapter(uuidArrayAdapter);
+        spUUID.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedUUID = (DeviceProvisioning.UUID) parent.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        TextView tvDialogName = (TextView) dialogView.findViewById(R.id.tvDialogName);
+        tvDialogName.setText(deviceName);
+    }
+
+    private void provisionDevice(DeviceSighting deviceSighting){
+
+        runToastOnUIThread("Provisioning device...", false);
+
+        JsonObject metadata = new JsonObject();
+        JsonObject device = new JsonObject();
+        device.addProperty("manufacturer", deviceSighting.getManufacturer());
+        metadata.add("device", device);
+
+        String currentUUID = "";
+        switch(selectedUUID){
+            case MAC:
+                currentUUID = deviceSighting.getUUID();
+                break;
+            case UUID:
+                currentUUID = deviceSighting.getMac();
+                break;
+            default:
+                currentUUID = deviceSighting.getMac();
+                break;
+        }
+
+        DeviceProvisioning d = new DeviceProvisioning(selectedType
+                , currentUUID
+                , deviceSighting.getName()
+                , metadata);
+
+        getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<Void>() {
+            @Override
+            public void success(Void data) {
+                runToastOnUIThread("Success!", true);
+            }
+
+            @Override
+            public void failure(String errorMsg) {
+                // GA 2016-05-09 - I think this error message should be reviewed. It's too long...
+                runToastOnUIThread("Failed! Error:" + errorMsg, true);
+            }
+        });
+    }
+
+    private void runToastOnUIThread(final String toastText, final boolean isLong){
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast toast = Toast.makeText(getApplicationContext(), toastText, isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
     }
 }
 

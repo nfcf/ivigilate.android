@@ -8,15 +8,33 @@ import com.google.gson.annotations.SerializedName;
 public class DeviceProvisioning {
     public enum Type {
         @SerializedName("BF")
-        BeaconFixed,
+        BeaconFixed("Beacon Fixed"),
         @SerializedName("BM")
-        BeaconMovable,
+        BeaconMovable("Beacon Movable"),
         @SerializedName("DF")
-        DetectorFixed,
+        DetectorFixed("Detector Fixed"),
         @SerializedName("DM")
-        DetectorMovable,
+        DetectorMovable("Detector Movable"),
         @SerializedName("DU")
-        DetectorUser;
+        DetectorUser("Detector User");
+
+        private String type;
+
+        Type(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public String toString() {
+            return type;
+        }
+    }
+
+    public enum UUID {
+        @SerializedName("MAC")
+        MAC,
+        @SerializedName("UUID")
+        UUID;
     }
 
     public Type type;

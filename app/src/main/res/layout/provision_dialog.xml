@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Type:"
+            android:id="@+id/tvProvisionType"
+            android:textSize="20dp"
+            android:layout_margin="16dp"/>
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinnerType"
+            android:layout_weight="1"
+            android:layout_below="@id/tvProvisionType"
+            android:layout_margin="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Unique Identifier to use:"
+            android:id="@+id/tvUUID"
+            android:textSize="20dp"
+            android:layout_below="@id/spinnerType"
+            android:layout_margin="16dp"/>
+
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/spinnerUUID"
+            android:layout_weight="1"
+            android:layout_below="@id/tvUUID"
+            android:layout_margin="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name:"
+            android:id="@+id/tvDialogNameTitle"
+            android:textSize="20dp"
+            android:layout_below="@id/spinnerUUID"
+            android:layout_margin="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvDialogName"
+            android:layout_below="@id/tvDialogNameTitle"
+            android:layout_margin="16dp"/>
+
+    </RelativeLayout>
+
+</LinearLayout>
