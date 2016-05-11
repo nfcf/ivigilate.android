@@ -1,5 +1,7 @@
 package com.ivigilate.android.app.activities;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -78,7 +80,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private IVigilateManager getIVigilateManager() {
-        return ((AppContext)getApplicationContext()).getIVigilateManager();
+        return ((AppContext) getApplicationContext()).getIVigilateManager();
     }
 
     private void bindControls() {
@@ -170,9 +172,7 @@ public class MainActivity extends BaseActivity {
         mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    }
-	
-	private void showProvisionDialog(final DeviceSighting deviceSighting){
+    private void showProvisionDialog(final DeviceSighting deviceSighting) {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
 
@@ -201,7 +201,7 @@ public class MainActivity extends BaseActivity {
         alertDialog.show();
     }
 
-    private void populateSpinners(View dialogView, String deviceName){
+    private void populateSpinners(View dialogView, String deviceName) {
         Spinner spType = (Spinner) dialogView.findViewById(R.id.spinnerType);
 
         ArrayAdapter<DeviceProvisioning.Type> typeArrayAdapter =
@@ -248,7 +248,7 @@ public class MainActivity extends BaseActivity {
         tvDialogName.setText(deviceName);
     }
 
-    private void provisionDevice(DeviceSighting deviceSighting){
+    private void provisionDevice(DeviceSighting deviceSighting) {
 
         runToastOnUIThread("Provisioning device...", false);
 
@@ -258,7 +258,7 @@ public class MainActivity extends BaseActivity {
         metadata.add("device", device);
 
         String currentUUID = "";
-        switch(selectedUUID){
+        switch (selectedUUID) {
             case MAC:
                 currentUUID = deviceSighting.getUUID();
                 break;
@@ -284,12 +284,12 @@ public class MainActivity extends BaseActivity {
             @Override
             public void failure(String errorMsg) {
                 // GA 2016-05-09 - I think this error message should be reviewed. It's too long...
-                runToastOnUIThread("Failed! Error:" + errorMsg, true);
+                runToastOnUIThread(errorMsg, true);
             }
         });
     }
 
-    private void runToastOnUIThread(final String toastText, final boolean isLong){
+    private void runToastOnUIThread(final String toastText, final boolean isLong) {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -297,5 +297,6 @@ public class MainActivity extends BaseActivity {
                 toast.show();
             }
         });
+    }
 }
 
