@@ -22,7 +22,7 @@ public class AppContext extends Application {
         ACRA.init(this);
 
         mIVigilateManager = IVigilateManager.getInstance(this);
-        mIVigilateManager.setServiceSendInterval(1 * 1000);
+        mIVigilateManager.setServiceSendInterval(2 * 1000);
         mIVigilateManager.setServiceStateChangeInterval(12 * 1000);
         
         Logger.i("Finished...");

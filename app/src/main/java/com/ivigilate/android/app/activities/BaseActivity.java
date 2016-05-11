@@ -5,14 +5,42 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Build;
+import android.provider.Settings;
+import android.widget.Toast;
 
 import com.ivigilate.android.app.utils.Logger;
 
 public class BaseActivity extends Activity {
     private static final int PERMISSIONS_REQUEST = 1;
+
+    protected void checkRequiredEnabledFeatures() {
+        // Verify if location services are enabled
+        LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (!service.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(this, "Please enable the GPS (location services).", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+            return;
+        }
+
+        // Verify if Bluetooth is enabled
+        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1);
+            return;
+        }
+    }
 
     @TargetApi(Build.VERSION_CODES.M)
     protected void checkRequiredPermissions() {
