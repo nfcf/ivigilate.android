@@ -8,10 +8,11 @@ import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
+import com.ivigilate.android.library.classes.Beacon;
+import com.ivigilate.android.library.classes.Detector;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
@@ -29,6 +30,7 @@ import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.List;
 
 import retrofit.Callback;
 import retrofit.RetrofitError;
@@ -345,7 +347,59 @@ public class IVigilateManager {
         });
     }
 
+    public void getBeacons(final IVigilateApiCallback<List<Beacon>> callback) {
+        mApi.getBeacons(new Callback<List<Beacon>>() {
+            @Override
+            public void success(List<Beacon> result, Response response) {
+                if(callback != null) callback.success(result);
+            }
 
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                String error = retrofitError.getLocalizedMessage();
+                try {
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    ApiResponse<String> errorObj = gson.fromJson(error, type);
+                    mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+
+                    error = errorObj.data;
+                } catch (Exception ex) {
+                    // Do nothing...
+                }
+
+                Logger.e("Device provisioning failed with error: " + error);
+                if (callback != null) callback.failure(error);
+            }
+        });
+    }
+
+    public void getDetectors(final IVigilateApiCallback<List<Detector>> callback) {
+        mApi.getDetectors(new Callback<List<Detector>>() {
+            @Override
+            public void success(List<Detector> result, Response response) {
+                if(callback != null) callback.success(result);
+            }
+
+            @Override
+            public void failure(RetrofitError retrofitError) {
+                String error = retrofitError.getLocalizedMessage();
+                try {
+                    Gson gson = new Gson();
+                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    ApiResponse<String> errorObj = gson.fromJson(error, type);
+                    mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
+
+                    error = errorObj.data;
+                } catch (Exception ex) {
+                    // Do nothing...
+                }
+
+                Logger.e("Device provisioning failed with error: " + error);
+                if (callback != null) callback.failure(error);
+            }
+        });
+    }
 
 
     protected void onDeviceSighting(DeviceSighting deviceSighting) {

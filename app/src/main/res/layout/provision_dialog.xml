@@ -18,7 +18,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/spinnerType"
-            android:layout_weight="1"
             android:layout_below="@id/tvProvisionType"
             android:layout_margin="16dp"/>
 
@@ -35,7 +34,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/spinnerUUID"
-            android:layout_weight="1"
             android:layout_below="@id/tvUUID"
             android:layout_margin="16dp"/>
 
@@ -43,16 +41,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Name:"
-            android:id="@+id/tvDialogNameTitle"
+            android:id="@+id/etDialogNameTitle"
             android:textSize="20dp"
             android:layout_below="@id/spinnerUUID"
             android:layout_margin="16dp"/>
 
-        <TextView
+        <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvDialogName"
-            android:layout_below="@id/tvDialogNameTitle"
+            android:id="@+id/etDialogName"
+            android:layout_below="@id/etDialogNameTitle"
             android:layout_margin="16dp"/>
 
     </RelativeLayout>

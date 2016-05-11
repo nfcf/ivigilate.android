@@ -3,7 +3,9 @@ package com.ivigilate.android.app.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +13,10 @@ import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,15 +27,19 @@ import com.ivigilate.android.app.R;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
+import com.ivigilate.android.library.classes.Beacon;
+import com.ivigilate.android.library.classes.Detector;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class MainActivity extends BaseActivity {
     // UI references.
+    private RelativeLayout mRlSightings;
     private ImageView mIvLogout;
     private TextView mTvEmptySightings;
 
@@ -44,8 +52,12 @@ public class MainActivity extends BaseActivity {
 
     private boolean isScanning;
 
-    private DeviceProvisioning.Type selectedType;
-    private DeviceProvisioning.UUID selectedUUID;
+    private DeviceProvisioning.Type mSelectedType;
+    private DeviceProvisioning.UUID mSelectedUUID;
+    private DeviceSighting mCurrDeviceSighting;
+    private EditText mEtDeviceName;
+
+    private int typeIconId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +69,10 @@ public class MainActivity extends BaseActivity {
         getIVigilateManager().startService();
 
         mSightings = new LinkedHashMap<String, DeviceSighting>();
+
+        downloadBeacons();
+
+        downloadDetectors();
 
         bindControls();
 
@@ -83,7 +99,38 @@ public class MainActivity extends BaseActivity {
         return ((AppContext) getApplicationContext()).getIVigilateManager();
     }
 
+    private void downloadBeacons(){
+        getIVigilateManager().getBeacons(new IVigilateApiCallback<List<Beacon>>() {
+            @Override
+            public void success(List<Beacon> beacons) {
+                runToastOnUIThread("Success getting Beacons", true);
+                //for(Beacon beacon : beacons){}
+            }
+
+            @Override
+            public void failure(String errorMsg) {
+                runToastOnUIThread("Failure getting Beacons", true);
+            }
+        });
+    }
+
+    private void downloadDetectors(){
+        getIVigilateManager().getDetectors(new IVigilateApiCallback<List<Detector>>() {
+            @Override
+            public void success(List<Detector> detectors) {
+                runToastOnUIThread("Success getting Detectors", true);
+            }
+
+            @Override
+            public void failure(String errorMsg) {
+                runToastOnUIThread("Failure getting Detectors", true);
+            }
+        });
+    }
+
     private void bindControls() {
+
+        mRlSightings = (RelativeLayout) findViewById(R.id.layout);
         ImageView ivLogo = (ImageView) findViewById(R.id.ivLogo);
         ivLogo.setOnClickListener(new OnClickListener() {
             @Override
@@ -158,8 +205,8 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
-                final DeviceSighting deviceSighting = (DeviceSighting) parent.getItemAtPosition(position);
-                showProvisionDialog(deviceSighting);
+                mCurrDeviceSighting = (DeviceSighting) parent.getItemAtPosition(position);
+                showProvisionDialog();
 
             }
         });
@@ -172,7 +219,7 @@ public class MainActivity extends BaseActivity {
         mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
-    private void showProvisionDialog(final DeviceSighting deviceSighting) {
+    private void showProvisionDialog() {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
 
@@ -183,7 +230,7 @@ public class MainActivity extends BaseActivity {
         dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                provisionDevice(deviceSighting);
+                provisionDevice();
                 dialog.dismiss();
             }
         });
@@ -195,13 +242,13 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        populateSpinners(dialogView, deviceSighting.getName());
+        populateSpinners(dialogView);
 
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
     }
 
-    private void populateSpinners(View dialogView, String deviceName) {
+    private void populateSpinners(View dialogView) {
         Spinner spType = (Spinner) dialogView.findViewById(R.id.spinnerType);
 
         ArrayAdapter<DeviceProvisioning.Type> typeArrayAdapter =
@@ -214,7 +261,7 @@ public class MainActivity extends BaseActivity {
         spType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedType = (DeviceProvisioning.Type) parent.getItemAtPosition(position);
+                mSelectedType = (DeviceProvisioning.Type) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -227,7 +274,7 @@ public class MainActivity extends BaseActivity {
 
         ArrayAdapter<DeviceProvisioning.UUID> uuidArrayAdapter =
                 new ArrayAdapter<DeviceProvisioning.UUID>(dialogView.getContext()
-                        , android.R.layout.simple_spinner_item
+                        , android.R.layout.simple_spinner_dropdown_item
                         , DeviceProvisioning.UUID.values());
 
         typeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -235,7 +282,7 @@ public class MainActivity extends BaseActivity {
         spUUID.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                selectedUUID = (DeviceProvisioning.UUID) parent.getItemAtPosition(position);
+                mSelectedUUID = (DeviceProvisioning.UUID) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -244,41 +291,60 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        TextView tvDialogName = (TextView) dialogView.findViewById(R.id.tvDialogName);
-        tvDialogName.setText(deviceName);
+        mEtDeviceName = (EditText) dialogView.findViewById(R.id.etDialogName);
     }
 
-    private void provisionDevice(DeviceSighting deviceSighting) {
+    private void provisionDevice() {
 
         runToastOnUIThread("Provisioning device...", false);
 
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
-        device.addProperty("manufacturer", deviceSighting.getManufacturer());
+        device.addProperty("manufacturer", mCurrDeviceSighting.getManufacturer());
         metadata.add("device", device);
 
         String currentUUID = "";
-        switch (selectedUUID) {
-            case MAC:
-                currentUUID = deviceSighting.getUUID();
-                break;
+        switch (mSelectedUUID) {
             case UUID:
-                currentUUID = deviceSighting.getMac();
+                currentUUID = mCurrDeviceSighting.getMac();
                 break;
+            case MAC:
             default:
-                currentUUID = deviceSighting.getMac();
+                currentUUID = mCurrDeviceSighting.getUUID();
                 break;
         }
 
-        DeviceProvisioning d = new DeviceProvisioning(selectedType
+        switch(mSelectedType){
+            case BeaconMovable:
+                typeIconId = R.drawable.bm_icon;
+                break;
+            case DetectorFixed:
+                typeIconId = R.drawable.df_icon;
+                break;
+            case DetectorMovable:
+                typeIconId = R.drawable.dm_icon;
+                break;
+            case DetectorUser:
+                typeIconId = R.drawable.du_icon;
+                break;
+            case BeaconFixed:
+            default:
+                typeIconId = R.drawable.bf_icon;
+                break;
+        }
+
+        DeviceProvisioning d = new DeviceProvisioning(mSelectedType
                 , currentUUID
-                , deviceSighting.getName()
+                , mEtDeviceName.getText().toString()
                 , metadata);
 
         getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<Void>() {
             @Override
             public void success(Void data) {
                 runToastOnUIThread("Success!", true);
+                mRlSightings.setBackgroundColor(Color.parseColor("#D3FFCE"));
+                ImageView ivTypeIcon = (ImageView) findViewById(R.id.ivTypeIcon);
+                ivTypeIcon.setImageResource(typeIconId);
             }
 
             @Override
