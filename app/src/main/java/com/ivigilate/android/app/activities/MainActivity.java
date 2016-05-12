@@ -33,6 +33,7 @@ import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -48,8 +49,8 @@ public class MainActivity extends BaseActivity {
 
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSighting> mSightings;
-    private List<Beacon> mDownloadedBeacons;
-    private List<Detector> mDownloadedDetectors;
+    private HashMap<String, Beacon> mDownloadedBeacons;
+    private HashMap<String, Detector> mDownloadedDetectors;
 
     private boolean isScanning;
 
@@ -104,7 +105,11 @@ public class MainActivity extends BaseActivity {
         getIVigilateManager().getBeacons(new IVigilateApiCallback<List<Beacon>>() {
             @Override
             public void success(List<Beacon> beacons) {
-                mDownloadedBeacons = beacons;
+                mDownloadedBeacons = new HashMap<String, Beacon>(beacons.size());
+                for(Beacon beacon : beacons){
+                    mDownloadedBeacons.put(beacon.getUid().toUpperCase(), beacon);
+                }
+
             }
 
             @Override
@@ -118,7 +123,10 @@ public class MainActivity extends BaseActivity {
         getIVigilateManager().getDetectors(new IVigilateApiCallback<List<Detector>>() {
             @Override
             public void success(List<Detector> detectors) {
-                mDownloadedDetectors = detectors;
+                mDownloadedDetectors = new HashMap<String, Detector>(detectors.size());
+                for(Detector detector : detectors) {
+                    mDownloadedDetectors.put(detector.getUid().toUpperCase(), detector);
+                }
             }
 
             @Override
@@ -215,25 +223,24 @@ public class MainActivity extends BaseActivity {
 
     private void checkSighting(DeviceSighting deviceSighting) {
         boolean found = false;
-        for(Beacon beacon : mDownloadedBeacons){
-            if(beacon.getUid() != null &&
-                    (beacon.getUid().equalsIgnoreCase(deviceSighting.getUUID())
-                    || beacon.getUid().equalsIgnoreCase(deviceSighting.getMac())))
-            {
-                deviceSighting.setDeviceName(beacon.getName());
-                found = true;
-                break;
-            }
+        String key = "";
+
+        if(mDownloadedBeacons.containsKey(deviceSighting.getUUID())){
+            key = deviceSighting.getUUID();
+            found = true;
+        }else if(mDownloadedBeacons.containsKey(deviceSighting.getMac())){
+            key = deviceSighting.getMac();
+            found = true;
         }
 
         if(!found) {
-            for (Detector detector : mDownloadedDetectors) {
-                if (detector.getUid() != null &&
-                        (detector.getUid().equalsIgnoreCase(deviceSighting.getUUID())
-                                || detector.getUid().equalsIgnoreCase(deviceSighting.getMac()))) {
-                    deviceSighting.setDeviceName(detector.getName());
-                }
+            if(mDownloadedDetectors.containsKey(deviceSighting.getUUID())){
+                deviceSighting.setDeviceName(mDownloadedDetectors.get(deviceSighting.getUUID()).getName());
+            }else if(mDownloadedDetectors.containsKey(deviceSighting.getMac())){
+                deviceSighting.setDeviceName(mDownloadedDetectors.get(deviceSighting.getMac()).getName());
             }
+        }else{
+            deviceSighting.setDeviceName(mDownloadedBeacons.get(key).getName());
         }
     }
 
