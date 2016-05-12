@@ -51,7 +51,7 @@ public class BleAdvUtils {
     private static final int MANUFACTURER_GIMBAL = 0xa0c6; //"ad7700c6";
     private static final int MANUFACTURER_JABRA = 0x180d;
     private static final int MANUFACTURER_TI = 0xaa80;
-    private static final int MANUFACTURER_SAMSUNG = 0x7500;
+    private static final int MANUFACTURER_SAMSUNG = 0x0075;
     private static final int MANUFACTURER_PEBBLE = 0xfed9;
 
 }
