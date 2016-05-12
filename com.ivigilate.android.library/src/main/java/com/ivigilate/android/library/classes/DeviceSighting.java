@@ -13,6 +13,8 @@ public class DeviceSighting {
 
     private String mPayload;
 
+    private String mDeviceName;
+
     public DeviceSighting() {}
 
     public DeviceSighting(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
@@ -29,8 +31,12 @@ public class DeviceSighting {
         }
     }
 
+    public void setDeviceName(String mDeviceName) {
+        this.mDeviceName = mDeviceName;
+    }
+
     public String getName() {
-        return mBluetoothDevice.getName();
+        return mDeviceName == null ? mBluetoothDevice.getName() : mDeviceName;
     }
 
     public String getManufacturer() {

@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,6 +48,8 @@ public class MainActivity extends BaseActivity {
 
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSighting> mSightings;
+    private List<Beacon> mDownloadedBeacons;
+    private List<Detector> mDownloadedDetectors;
 
     private boolean isScanning;
 
@@ -103,13 +104,12 @@ public class MainActivity extends BaseActivity {
         getIVigilateManager().getBeacons(new IVigilateApiCallback<List<Beacon>>() {
             @Override
             public void success(List<Beacon> beacons) {
-                runToastOnUIThread("Success getting Beacons", true);
-                //for(Beacon beacon : beacons){}
+                mDownloadedBeacons = beacons;
             }
 
             @Override
             public void failure(String errorMsg) {
-                runToastOnUIThread("Failure getting Beacons", true);
+                runToastOnUIThread("Failure getting Beacons " + errorMsg, true);
             }
         });
     }
@@ -118,12 +118,12 @@ public class MainActivity extends BaseActivity {
         getIVigilateManager().getDetectors(new IVigilateApiCallback<List<Detector>>() {
             @Override
             public void success(List<Detector> detectors) {
-                runToastOnUIThread("Success getting Detectors", true);
+                mDownloadedDetectors = detectors;
             }
 
             @Override
             public void failure(String errorMsg) {
-                runToastOnUIThread("Failure getting Detectors", true);
+                runToastOnUIThread("Failure getting Detectors " + errorMsg, true);
             }
         });
     }
@@ -182,6 +182,7 @@ public class MainActivity extends BaseActivity {
                                 public void run() {
                                     String key = deviceSighting.getMac() + "|" + deviceSighting.getUUID();
 
+                                    checkSighting(deviceSighting);
                                     mSightings.put(key, deviceSighting);
 
                                     mSightingAdapter.notifyDataSetChanged();
@@ -210,6 +211,30 @@ public class MainActivity extends BaseActivity {
 
             }
         });
+    }
+
+    private void checkSighting(DeviceSighting deviceSighting) {
+        boolean found = false;
+        for(Beacon beacon : mDownloadedBeacons){
+            if(beacon.getUid() != null &&
+                    (beacon.getUid().equalsIgnoreCase(deviceSighting.getUUID())
+                    || beacon.getUid().equalsIgnoreCase(deviceSighting.getMac())))
+            {
+                deviceSighting.setDeviceName(beacon.getName());
+                found = true;
+                break;
+            }
+        }
+
+        if(!found) {
+            for (Detector detector : mDownloadedDetectors) {
+                if (detector.getUid() != null &&
+                        (detector.getUid().equalsIgnoreCase(deviceSighting.getUUID())
+                                || detector.getUid().equalsIgnoreCase(deviceSighting.getMac()))) {
+                    deviceSighting.setDeviceName(detector.getName());
+                }
+            }
+        }
     }
 
     private void showHideViews() {
