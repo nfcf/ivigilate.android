@@ -1,5 +1,7 @@
 package com.ivigilate.android.library.classes;
 
+import com.ivigilate.android.library.utils.StringUtils;
+
 /**
  * Created by GoAlves on 11/05/2016.
  */
@@ -11,6 +13,7 @@ public class Detector {
     private int battery;
     private boolean active;
     private String uid;
+    private DeviceProvisioning.Type dpType;
 
     public Detector(){}
 
@@ -21,6 +24,23 @@ public class Detector {
         this.battery = battery;
         this.active = active;
         this.uid = uuid;
+        convertStrToType();
+    }
+
+    private void convertStrToType(){
+        if(!StringUtils.isNullOrBlank(type)) {
+            switch (type) {
+                case "F":
+                    this.dpType = DeviceProvisioning.Type.BeaconFixed;
+                    break;
+                case "M":
+                default:
+                    this.dpType = DeviceProvisioning.Type.BeaconMovable;
+                    break;
+            }
+        }else{
+            this.dpType = DeviceProvisioning.Type.BeaconMovable;
+        }
     }
 
     public String getId() {
@@ -69,5 +89,13 @@ public class Detector {
 
     public void setUid(String uid) {
         this.uid = uid;
+    }
+
+    public DeviceProvisioning.Type getDpType() {
+        return dpType;
+    }
+
+    public void setDpType(DeviceProvisioning.Type dpType) {
+        this.dpType = dpType;
     }
 }

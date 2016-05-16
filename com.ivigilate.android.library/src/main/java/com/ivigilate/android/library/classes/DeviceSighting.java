@@ -14,6 +14,10 @@ public class DeviceSighting {
     private String mPayload;
 
     private String mDeviceName;
+    private boolean mProvisioned = false;
+    private int mTypeIconId;
+    private String mDeviceType;
+    private String mDeviceUUIDType;
 
     public DeviceSighting() {}
 
@@ -97,5 +101,37 @@ public class DeviceSighting {
     public int getBattery() {
         return getUUID() != "" && getData() != "" && getData().length() > 11 ?
                 Integer.parseInt(getData().substring(9,11), 16) : 0;
+    }
+
+    public boolean isProvisioned() {
+        return mProvisioned;
+    }
+
+    public void setProvisioned(boolean provisioned) {
+        this.mProvisioned = provisioned;
+    }
+
+    public int getTypeIconId() {
+        return mTypeIconId;
+    }
+
+    public void setTypeIconId(int iconTypeId) {
+        this.mTypeIconId = iconTypeId;
+    }
+
+    public String getDeviceType() {
+        return mDeviceType;
+    }
+
+    public void setDeviceType(String type) {
+        this.mDeviceType = type;
+    }
+
+    public String getDeviceUUIDType() {
+        return mDeviceUUIDType;
+    }
+
+    public void setDeviceUUIDType(String uuidType) {
+        this.mDeviceUUIDType = uuidType;
     }
 }

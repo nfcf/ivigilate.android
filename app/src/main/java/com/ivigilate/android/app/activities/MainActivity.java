@@ -3,7 +3,6 @@ package com.ivigilate.android.app.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,7 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,7 +37,6 @@ import java.util.List;
 
 public class MainActivity extends BaseActivity {
     // UI references.
-    private RelativeLayout mRlSightings;
     private ImageView mIvLogout;
     private TextView mTvEmptySightings;
 
@@ -138,7 +135,6 @@ public class MainActivity extends BaseActivity {
 
     private void bindControls() {
 
-        mRlSightings = (RelativeLayout) findViewById(R.id.layout);
         ImageView ivLogo = (ImageView) findViewById(R.id.ivLogo);
         ivLogo.setOnClickListener(new OnClickListener() {
             @Override
@@ -223,24 +219,41 @@ public class MainActivity extends BaseActivity {
 
     private void checkSighting(DeviceSighting deviceSighting) {
         boolean found = false;
-        String key = "";
 
         if(mDownloadedBeacons.containsKey(deviceSighting.getUUID())){
-            key = deviceSighting.getUUID();
+            deviceSighting.setDeviceName(mDownloadedBeacons.get(deviceSighting.getUUID()).getName());
+            deviceSighting.setProvisioned(true);
+            getIconByType(mDownloadedBeacons.get(deviceSighting.getUUID()).getDpType());
+            deviceSighting.setTypeIconId(typeIconId);
+            deviceSighting.setDeviceType(mDownloadedBeacons.get(deviceSighting.getUUID()).getDpType().name());
+            deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.UUID.name());
             found = true;
         }else if(mDownloadedBeacons.containsKey(deviceSighting.getMac())){
-            key = deviceSighting.getMac();
+            deviceSighting.setDeviceName(mDownloadedBeacons.get(deviceSighting.getMac()).getName());
+            deviceSighting.setProvisioned(true);
+            getIconByType(mDownloadedBeacons.get(deviceSighting.getMac()).getDpType());
+            deviceSighting.setTypeIconId(typeIconId);
+            deviceSighting.setDeviceType(mDownloadedBeacons.get(deviceSighting.getMac()).getDpType().name());
+            deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.MAC.name());
             found = true;
         }
 
         if(!found) {
             if(mDownloadedDetectors.containsKey(deviceSighting.getUUID())){
                 deviceSighting.setDeviceName(mDownloadedDetectors.get(deviceSighting.getUUID()).getName());
+                deviceSighting.setProvisioned(true);
+                getIconByType(mDownloadedDetectors.get(deviceSighting.getUUID()).getDpType());
+                deviceSighting.setTypeIconId(typeIconId);
+                deviceSighting.setDeviceType(mDownloadedDetectors.get(deviceSighting.getUUID()).getDpType().name());
+                deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.UUID.name());
             }else if(mDownloadedDetectors.containsKey(deviceSighting.getMac())){
                 deviceSighting.setDeviceName(mDownloadedDetectors.get(deviceSighting.getMac()).getName());
+                deviceSighting.setProvisioned(true);
+                getIconByType(mDownloadedDetectors.get(deviceSighting.getMac()).getDpType());
+                deviceSighting.setTypeIconId(typeIconId);
+                deviceSighting.setDeviceType(mDownloadedDetectors.get(deviceSighting.getMac()).getDpType().name());
+                deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.MAC.name());
             }
-        }else{
-            deviceSighting.setDeviceName(mDownloadedBeacons.get(key).getName());
         }
     }
 
@@ -274,13 +287,13 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        populateSpinners(dialogView);
+        populateDialogView(dialogView);
 
         AlertDialog alertDialog = dialogBuilder.create();
         alertDialog.show();
     }
 
-    private void populateSpinners(View dialogView) {
+    private void populateDialogView(View dialogView) {
         Spinner spType = (Spinner) dialogView.findViewById(R.id.spinnerType);
 
         ArrayAdapter<DeviceProvisioning.Type> typeArrayAdapter =
@@ -324,6 +337,11 @@ public class MainActivity extends BaseActivity {
         });
 
         mEtDeviceName = (EditText) dialogView.findViewById(R.id.etDialogName);
+        if(mCurrDeviceSighting.isProvisioned()) {
+            mEtDeviceName.setText(mCurrDeviceSighting.getName());
+            spType.setSelection(DeviceProvisioning.Type.valueOf(mCurrDeviceSighting.getDeviceType()).ordinal());
+            spUUID.setSelection(DeviceProvisioning.UUID.valueOf(mCurrDeviceSighting.getDeviceUUIDType()).ordinal());
+        }
     }
 
     private void provisionDevice() {
@@ -346,7 +364,42 @@ public class MainActivity extends BaseActivity {
                 break;
         }
 
-        switch(mSelectedType){
+        getIconByType(mSelectedType);
+
+        DeviceProvisioning d = new DeviceProvisioning(mSelectedType
+                , currentUUID
+                , mEtDeviceName.getText().toString()
+                , metadata);
+
+        getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<String>() {
+            @Override
+            public void success(String resultMessage) {
+                mCurrDeviceSighting.setDeviceType(mSelectedType.name());
+                mCurrDeviceSighting.setDeviceUUIDType(mSelectedUUID.name());
+                mCurrDeviceSighting.setDeviceName(mEtDeviceName.getText().toString());
+                mCurrDeviceSighting.setProvisioned(true);
+                mCurrDeviceSighting.setTypeIconId(typeIconId);
+
+                String key = mCurrDeviceSighting.getMac() + "|" + mCurrDeviceSighting.getUUID();
+                //Overwrite the previous entry on the sightings map
+                mSightings.put(key, mCurrDeviceSighting);
+
+                //notify adapter to refresh itself
+                mSightingAdapter.notifyDataSetChanged();
+
+
+                runToastOnUIThread(resultMessage, true);
+            }
+
+            @Override
+            public void failure(String errorMsg) {
+                runToastOnUIThread(errorMsg, true);
+            }
+        });
+    }
+
+    private void getIconByType(DeviceProvisioning.Type type) {
+        switch(type){
             case BeaconMovable:
                 typeIconId = R.drawable.bm_icon;
                 break;
@@ -364,27 +417,6 @@ public class MainActivity extends BaseActivity {
                 typeIconId = R.drawable.bf_icon;
                 break;
         }
-
-        DeviceProvisioning d = new DeviceProvisioning(mSelectedType
-                , currentUUID
-                , mEtDeviceName.getText().toString()
-                , metadata);
-
-        getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<String>() {
-            @Override
-            public void success(String resultMessage) {
-                runToastOnUIThread(resultMessage, true);
-                mRlSightings.setBackgroundColor(Color.parseColor("#D3FFCE"));
-                ImageView ivTypeIcon = (ImageView) findViewById(R.id.ivTypeIcon);
-                ivTypeIcon.setImageResource(typeIconId);
-            }
-
-            @Override
-            public void failure(String errorMsg) {
-                // GA 2016-05-09 - I think this error message should be reviewed. It's too long...
-                runToastOnUIThread(errorMsg, true);
-            }
-        });
     }
 
     private void runToastOnUIThread(final String toastText, final boolean isLong) {
