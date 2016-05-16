@@ -370,10 +370,10 @@ public class MainActivity extends BaseActivity {
                 , mEtDeviceName.getText().toString()
                 , metadata);
 
-        getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<Void>() {
+        getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<String>() {
             @Override
-            public void success(Void data) {
-                runToastOnUIThread("Success!", true);
+            public void success(String resultMessage) {
+                runToastOnUIThread(resultMessage, true);
                 mRlSightings.setBackgroundColor(Color.parseColor("#D3FFCE"));
                 ImageView ivTypeIcon = (ImageView) findViewById(R.id.ivTypeIcon);
                 ivTypeIcon.setImageResource(typeIconId);

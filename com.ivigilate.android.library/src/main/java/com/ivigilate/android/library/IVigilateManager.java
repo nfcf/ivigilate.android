@@ -317,14 +317,14 @@ public class IVigilateManager {
         });
     }
 
-    public void provisionDevice(final DeviceProvisioning deviceProvisioning, final IVigilateApiCallback<Void> callback) {
-        mApi.provisionDevice(deviceProvisioning, new Callback<ApiResponse<Void>>() {
+    public void provisionDevice(final DeviceProvisioning deviceProvisioning, final IVigilateApiCallback<String> callback) {
+        mApi.provisionDevice(deviceProvisioning, new Callback<ApiResponse<String>>() {
             @Override
-            public void success(ApiResponse<Void> result, Response response) {
+            public void success(ApiResponse<String> result, Response response) {
                 Logger.i("Device '" + deviceProvisioning.uid + "' of type '" + deviceProvisioning.type.toString() + "' provisioned successfully.");
                 mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
 
-                if (callback != null) callback.success(null);
+                if (callback != null) callback.success(result.data);
             }
 
             @Override

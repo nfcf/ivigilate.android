@@ -22,7 +22,7 @@ public interface IVigilateApi {
     void logout(Callback<ApiResponse<User>> cb);
 
     @POST("/api/v1/provisiondevice/") // this one requires login
-    void provisionDevice(@Body DeviceProvisioning deviceProvisioning, Callback<ApiResponse<Void>> cb);
+    void provisionDevice(@Body DeviceProvisioning deviceProvisioning, Callback<ApiResponse<String>> cb);
 
     @POST("/api/v1/addsightings/") // this one does not require login
     void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<List<String>>> cb);
