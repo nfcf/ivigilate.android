@@ -186,12 +186,14 @@ public class MainActivity extends BaseActivity {
                                 public void run() {
                                     String key = deviceSighting.getMac() + "|" + deviceSighting.getUUID();
 
-                                    checkSighting(deviceSighting);
-                                    mSightings.put(key, deviceSighting);
+                                    if(!mSightings.containsKey(key)) {
+                                        checkSighting(deviceSighting);
+                                        mSightings.put(key, deviceSighting);
 
-                                    mSightingAdapter.notifyDataSetChanged();
+                                        mSightingAdapter.notifyDataSetChanged();
 
-                                    showHideViews();
+                                        showHideViews();
+                                    }
                                 }
                             });
                         }
