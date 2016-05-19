@@ -2,11 +2,10 @@ package com.ivigilate.android.library.classes;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class DeviceProvisioning {
-    public enum Type {
+    public enum DeviceType {
         @SerializedName("BF")
         BeaconFixed("Beacon Fixed"),
         @SerializedName("BM")
@@ -20,7 +19,7 @@ public class DeviceProvisioning {
 
         private String type;
 
-        Type(String type) {
+        DeviceType(String type) {
             this.type = type;
         }
 
@@ -30,30 +29,33 @@ public class DeviceProvisioning {
         }
     }
 
-    public enum UUID {
+    public enum IdentifierType {
         @SerializedName("MAC")
         MAC,
         @SerializedName("UUID")
         UUID;
     }
 
-    public Type type;
+    public DeviceType type;
     public String uid;
     public String name;
     public String metadata;
+    public boolean is_active;
 
     public DeviceProvisioning() {}
 
-    public DeviceProvisioning(Type type, String uid, String name) {
+    public DeviceProvisioning(DeviceType type, String uid, String name, boolean isActive) {
         this.type = type;
         this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
         this.name = name;
+        this.is_active = isActive;
     }
 
-    public DeviceProvisioning(Type type, String uid, String name, JsonObject metadata) {
+    public DeviceProvisioning(DeviceType type, String uid, String name, boolean isActive, JsonObject metadata) {
         this.type = type;
         this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
         this.name = name;
+        this.is_active = isActive;
 
         Gson gson = new Gson();
         this.metadata = gson.toJson(metadata);

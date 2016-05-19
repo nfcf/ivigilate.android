@@ -11,8 +11,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
-import com.ivigilate.android.library.classes.Beacon;
-import com.ivigilate.android.library.classes.Detector;
+import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
@@ -250,9 +249,10 @@ public class IVigilateManager {
                     JsonObject device = new JsonObject();
                     device.addProperty("model", PhoneUtils.getDeviceName());
                     metadata.add("device", device);
-                    DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.Type.DetectorUser,
+                    DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.DeviceType.DetectorUser,
                             PhoneUtils.getDeviceUniqueId(mContext),
                             mSettings.getUser().email,
+                            true,
                             metadata);
 
                     provisionDevice(deviceProvisioning, null);
@@ -347,10 +347,10 @@ public class IVigilateManager {
         });
     }
 
-    public void getBeacons(final IVigilateApiCallback<List<Beacon>> callback) {
-        mApi.getBeacons(new Callback<List<Beacon>>() {
+    public void getBeacons(final IVigilateApiCallback<List<Device>> callback) {
+        mApi.getBeacons(new Callback<List<Device>>() {
             @Override
-            public void success(List<Beacon> result, Response response) {
+            public void success(List<Device> result, Response response) {
                 if(callback != null) callback.success(result);
             }
 
@@ -374,10 +374,10 @@ public class IVigilateManager {
         });
     }
 
-    public void getDetectors(final IVigilateApiCallback<List<Detector>> callback) {
-        mApi.getDetectors(new Callback<List<Detector>>() {
+    public void getDetectors(final IVigilateApiCallback<List<Device>> callback) {
+        mApi.getDetectors(new Callback<List<Device>>() {
             @Override
-            public void success(List<Detector> result, Response response) {
+            public void success(List<Device> result, Response response) {
                 if(callback != null) callback.success(result);
             }
 

@@ -12,46 +12,70 @@
             android:text="Type:"
             android:id="@+id/tvProvisionType"
             android:textSize="20dp"
-            android:layout_margin="16dp"/>
+            android:textColor="@android:color/secondary_text_light"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
         <Spinner
+            android:id="@+id/spinnerType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/spinnerType"
             android:layout_below="@id/tvProvisionType"
-            android:layout_margin="16dp"/>
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
         <TextView
+            android:id="@+id/tvIdentifierTypeTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Unique Identifier to use:"
-            android:id="@+id/tvUUID"
             android:textSize="20dp"
+            android:textColor="@android:color/secondary_text_light"
             android:layout_below="@id/spinnerType"
-            android:layout_margin="16dp"/>
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
         <Spinner
+            android:id="@+id/spinnerIdentifierType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/spinnerUUID"
-            android:layout_below="@id/tvUUID"
-            android:layout_margin="16dp"/>
+            android:layout_below="@id/tvIdentifierTypeTitle"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
         <TextView
+            android:id="@+id/tvDialogNameTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Name:"
-            android:id="@+id/etDialogNameTitle"
             android:textSize="20dp"
-            android:layout_below="@id/spinnerUUID"
-            android:layout_margin="16dp"/>
+            android:textColor="@android:color/secondary_text_light"
+            android:layout_below="@id/spinnerIdentifierType"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
         <EditText
+            android:id="@+id/etDialogName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/etDialogName"
-            android:layout_below="@id/etDialogNameTitle"
-            android:layout_margin="16dp"/>
+            android:layout_below="@id/tvDialogNameTitle"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
+
+        <Switch
+            android:id="@+id/switchIsActive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Is Active?"
+            android:textSize="20dp"
+            android:textColor="@android:color/secondary_text_light"
+            android:layout_below="@id/etDialogName"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"/>
 
     </RelativeLayout>
 

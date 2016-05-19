@@ -15,21 +15,23 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 import com.ivigilate.android.app.AppContext;
 import com.ivigilate.android.app.R;
+import com.ivigilate.android.app.classes.DeviceSightingEx;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
-import com.ivigilate.android.library.classes.Beacon;
-import com.ivigilate.android.library.classes.Detector;
+import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
+import com.ivigilate.android.library.utils.StringUtils;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -45,18 +47,16 @@ public class MainActivity extends BaseActivity {
     private Button mBtnStartStop;
 
     private SightingAdapter mSightingAdapter;
-    private LinkedHashMap<String, DeviceSighting> mSightings;
-    private HashMap<String, Beacon> mDownloadedBeacons;
-    private HashMap<String, Detector> mDownloadedDetectors;
+    private LinkedHashMap<String, DeviceSightingEx> mSightings;
+    private HashMap<String, Device> mProvisionedDevices;
 
     private boolean isScanning;
 
-    private DeviceProvisioning.Type mSelectedType;
-    private DeviceProvisioning.UUID mSelectedUUID;
-    private DeviceSighting mCurrDeviceSighting;
+    private DeviceProvisioning.DeviceType mSelectedDeviceType;
+    private DeviceProvisioning.IdentifierType mSelectedIdentifierType;
+    private DeviceSightingEx mCurrentDeviceSighting;
     private EditText mEtDeviceName;
-
-    private int typeIconId;
+    private Switch mSwitchIsActive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,10 +67,10 @@ public class MainActivity extends BaseActivity {
 
         getIVigilateManager().startService();
 
-        mSightings = new LinkedHashMap<String, DeviceSighting>();
+        mSightings = new LinkedHashMap<String, DeviceSightingEx>();
 
+        mProvisionedDevices = new HashMap<String, Device>();
         downloadBeacons();
-
         downloadDetectors();
 
         bindControls();
@@ -99,12 +99,20 @@ public class MainActivity extends BaseActivity {
     }
 
     private void downloadBeacons(){
-        getIVigilateManager().getBeacons(new IVigilateApiCallback<List<Beacon>>() {
+        getIVigilateManager().getBeacons(new IVigilateApiCallback<List<Device>>() {
             @Override
-            public void success(List<Beacon> beacons) {
-                mDownloadedBeacons = new HashMap<String, Beacon>(beacons.size());
-                for(Beacon beacon : beacons){
-                    mDownloadedBeacons.put(beacon.getUid().toUpperCase(), beacon);
+            public void success(List<Device> devices) {
+                for(Device device : devices){
+                    switch(device.getType()) {
+                        case "M":
+                            device.setDeviceType(DeviceProvisioning.DeviceType.BeaconMovable);
+                            break;
+                        case "F":
+                        default:
+                            device.setDeviceType(DeviceProvisioning.DeviceType.BeaconFixed);
+                            break;
+                    }
+                    mProvisionedDevices.put(device.getUid().toUpperCase(), device);
                 }
 
             }
@@ -117,12 +125,23 @@ public class MainActivity extends BaseActivity {
     }
 
     private void downloadDetectors(){
-        getIVigilateManager().getDetectors(new IVigilateApiCallback<List<Detector>>() {
+        getIVigilateManager().getDetectors(new IVigilateApiCallback<List<Device>>() {
             @Override
-            public void success(List<Detector> detectors) {
-                mDownloadedDetectors = new HashMap<String, Detector>(detectors.size());
-                for(Detector detector : detectors) {
-                    mDownloadedDetectors.put(detector.getUid().toUpperCase(), detector);
+            public void success(List<Device> devices) {
+                for(Device device : devices) {
+                    switch(device.getType()) {
+                        case "U":
+                            device.setDeviceType(DeviceProvisioning.DeviceType.DetectorUser);
+                            break;
+                        case "M":
+                            device.setDeviceType(DeviceProvisioning.DeviceType.DetectorMovable);
+                            break;
+                        case "F":
+                        default:
+                            device.setDeviceType(DeviceProvisioning.DeviceType.DetectorFixed);
+                            break;
+                    }
+                    mProvisionedDevices.put(device.getUid().toUpperCase(), device);
                 }
             }
 
@@ -178,22 +197,22 @@ public class MainActivity extends BaseActivity {
                 } else {
                     mBtnStartStop.setText("STOP");
                     mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
+
                     getIVigilateManager().setSightingListener(new ISightingListener() {
                         @Override
                         public void onDeviceSighting(final DeviceSighting deviceSighting) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    String key = deviceSighting.getMac() + "|" + deviceSighting.getUUID();
+                                    DeviceSightingEx sighting = new DeviceSightingEx(deviceSighting);
+                                    String key = sighting.getMac() + "|" + sighting.getUUID();
 
-                                    if(!mSightings.containsKey(key)) {
-                                        checkSighting(deviceSighting);
-                                        mSightings.put(key, deviceSighting);
+                                    checkSighting(sighting);
+                                    mSightings.put(key, sighting);
 
-                                        mSightingAdapter.notifyDataSetChanged();
+                                    mSightingAdapter.notifyDataSetChanged();
 
-                                        showHideViews();
-                                    }
+                                    showHideViews();
                                 }
                             });
                         }
@@ -212,50 +231,35 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
-                mCurrDeviceSighting = (DeviceSighting) parent.getItemAtPosition(position);
+                mCurrentDeviceSighting = (DeviceSightingEx) parent.getItemAtPosition(position);
                 showProvisionDialog();
 
             }
         });
     }
 
-    private void checkSighting(DeviceSighting deviceSighting) {
-        boolean found = false;
+    private void checkSighting(DeviceSightingEx deviceSighting) {
+        String uuid = deviceSighting.getUUID();
+        String mac = deviceSighting.getMac();
 
-        if(mDownloadedBeacons.containsKey(deviceSighting.getUUID())){
-            deviceSighting.setDeviceName(mDownloadedBeacons.get(deviceSighting.getUUID()).getName());
-            deviceSighting.setProvisioned(true);
-            getIconByType(mDownloadedBeacons.get(deviceSighting.getUUID()).getDpType());
-            deviceSighting.setTypeIconId(typeIconId);
-            deviceSighting.setDeviceType(mDownloadedBeacons.get(deviceSighting.getUUID()).getDpType().name());
-            deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.UUID.name());
-            found = true;
-        }else if(mDownloadedBeacons.containsKey(deviceSighting.getMac())){
-            deviceSighting.setDeviceName(mDownloadedBeacons.get(deviceSighting.getMac()).getName());
-            deviceSighting.setProvisioned(true);
-            getIconByType(mDownloadedBeacons.get(deviceSighting.getMac()).getDpType());
-            deviceSighting.setTypeIconId(typeIconId);
-            deviceSighting.setDeviceType(mDownloadedBeacons.get(deviceSighting.getMac()).getDpType().name());
-            deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.MAC.name());
-            found = true;
-        }
+        if(mProvisionedDevices.containsKey(mac)){  // MAC takes precedence
+            Device provisionedDevice = mProvisionedDevices.get(mac);
 
-        if(!found) {
-            if(mDownloadedDetectors.containsKey(deviceSighting.getUUID())){
-                deviceSighting.setDeviceName(mDownloadedDetectors.get(deviceSighting.getUUID()).getName());
-                deviceSighting.setProvisioned(true);
-                getIconByType(mDownloadedDetectors.get(deviceSighting.getUUID()).getDpType());
-                deviceSighting.setTypeIconId(typeIconId);
-                deviceSighting.setDeviceType(mDownloadedDetectors.get(deviceSighting.getUUID()).getDpType().name());
-                deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.UUID.name());
-            }else if(mDownloadedDetectors.containsKey(deviceSighting.getMac())){
-                deviceSighting.setDeviceName(mDownloadedDetectors.get(deviceSighting.getMac()).getName());
-                deviceSighting.setProvisioned(true);
-                getIconByType(mDownloadedDetectors.get(deviceSighting.getMac()).getDpType());
-                deviceSighting.setTypeIconId(typeIconId);
-                deviceSighting.setDeviceType(mDownloadedDetectors.get(deviceSighting.getMac()).getDpType().name());
-                deviceSighting.setDeviceUUIDType(DeviceProvisioning.UUID.MAC.name());
-            }
+            deviceSighting.setDeviceProvisioned(true);
+            deviceSighting.setDeviceActive(provisionedDevice.isActive());
+            deviceSighting.setDeviceName(provisionedDevice.getName());
+            deviceSighting.setDeviceType(provisionedDevice.getDeviceType());
+            deviceSighting.setTypeIconId(getIconByType(provisionedDevice.getDeviceType()));
+            deviceSighting.setIdentifierType(DeviceProvisioning.IdentifierType.MAC);
+        } else if(mProvisionedDevices.containsKey(uuid)){
+            Device provisionedDevice = mProvisionedDevices.get(uuid);
+
+            deviceSighting.setDeviceProvisioned(true);
+            deviceSighting.setDeviceActive(provisionedDevice.isActive());
+            deviceSighting.setDeviceName(provisionedDevice.getName());
+            deviceSighting.setDeviceType(provisionedDevice.getDeviceType());
+            deviceSighting.setTypeIconId(getIconByType(provisionedDevice.getDeviceType()));
+            deviceSighting.setIdentifierType(DeviceProvisioning.IdentifierType.UUID);
         }
     }
 
@@ -298,17 +302,17 @@ public class MainActivity extends BaseActivity {
     private void populateDialogView(View dialogView) {
         Spinner spType = (Spinner) dialogView.findViewById(R.id.spinnerType);
 
-        ArrayAdapter<DeviceProvisioning.Type> typeArrayAdapter =
-                new ArrayAdapter<DeviceProvisioning.Type>(dialogView.getContext()
+        ArrayAdapter<DeviceProvisioning.DeviceType> typeArrayAdapter =
+                new ArrayAdapter<DeviceProvisioning.DeviceType>(dialogView.getContext()
                         , android.R.layout.simple_spinner_item
-                        , DeviceProvisioning.Type.values());
+                        , DeviceProvisioning.DeviceType.values());
 
         typeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spType.setAdapter(typeArrayAdapter);
         spType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mSelectedType = (DeviceProvisioning.Type) parent.getItemAtPosition(position);
+                mSelectedDeviceType = (DeviceProvisioning.DeviceType) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -317,19 +321,19 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        Spinner spUUID = (Spinner) dialogView.findViewById(R.id.spinnerUUID);
+        Spinner spIdentifierType = (Spinner) dialogView.findViewById(R.id.spinnerIdentifierType);
 
-        ArrayAdapter<DeviceProvisioning.UUID> uuidArrayAdapter =
-                new ArrayAdapter<DeviceProvisioning.UUID>(dialogView.getContext()
+        ArrayAdapter<DeviceProvisioning.IdentifierType> uuidArrayAdapter =
+                new ArrayAdapter<DeviceProvisioning.IdentifierType>(dialogView.getContext()
                         , android.R.layout.simple_spinner_dropdown_item
-                        , DeviceProvisioning.UUID.values());
+                        , DeviceProvisioning.IdentifierType.values());
 
         typeArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spUUID.setAdapter(uuidArrayAdapter);
-        spUUID.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spIdentifierType.setAdapter(uuidArrayAdapter);
+        spIdentifierType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mSelectedUUID = (DeviceProvisioning.UUID) parent.getItemAtPosition(position);
+                mSelectedIdentifierType = (DeviceProvisioning.IdentifierType) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -339,10 +343,26 @@ public class MainActivity extends BaseActivity {
         });
 
         mEtDeviceName = (EditText) dialogView.findViewById(R.id.etDialogName);
-        if(mCurrDeviceSighting.isProvisioned()) {
-            mEtDeviceName.setText(mCurrDeviceSighting.getName());
-            spType.setSelection(DeviceProvisioning.Type.valueOf(mCurrDeviceSighting.getDeviceType()).ordinal());
-            spUUID.setSelection(DeviceProvisioning.UUID.valueOf(mCurrDeviceSighting.getDeviceUUIDType()).ordinal());
+        mEtDeviceName.setText(mCurrentDeviceSighting.getName());
+
+        mSwitchIsActive = (Switch) dialogView.findViewById(R.id.switchIsActive);
+        mSwitchIsActive.setChecked(mCurrentDeviceSighting.isDeviceActive());
+
+        if(mCurrentDeviceSighting.isDeviceProvisioned()) {
+            spType.setSelection(DeviceProvisioning.DeviceType.valueOf(mCurrentDeviceSighting.getDeviceType().name()).ordinal());
+            spIdentifierType.setSelection(DeviceProvisioning.IdentifierType.valueOf(mCurrentDeviceSighting.getIdentifierType().name()).ordinal());
+
+            spIdentifierType.setEnabled(false);
+        } else {
+            if (StringUtils.isNullOrBlank(mCurrentDeviceSighting.getMac())) {
+                spIdentifierType.setSelection(DeviceProvisioning.IdentifierType.UUID.ordinal());
+                spIdentifierType.setEnabled(false);
+            } else if (StringUtils.isNullOrBlank(mCurrentDeviceSighting.getMac())) {
+                spIdentifierType.setSelection(DeviceProvisioning.IdentifierType.MAC.ordinal());
+                spIdentifierType.setEnabled(false);
+            } else {
+                spIdentifierType.setEnabled(true);
+            }
         }
     }
 
@@ -352,39 +372,62 @@ public class MainActivity extends BaseActivity {
 
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
-        device.addProperty("manufacturer", mCurrDeviceSighting.getManufacturer());
+        device.addProperty("manufacturer", mCurrentDeviceSighting.getManufacturer());
         metadata.add("device", device);
 
-        String currentUUID = "";
-        switch (mSelectedUUID) {
+        String uid = "";
+        switch (mSelectedIdentifierType) {
             case UUID:
-                currentUUID = mCurrDeviceSighting.getMac();
+                uid = mCurrentDeviceSighting.getUUID();
                 break;
             case MAC:
             default:
-                currentUUID = mCurrDeviceSighting.getUUID();
+                uid = mCurrentDeviceSighting.getMac();
                 break;
         }
 
-        getIconByType(mSelectedType);
-
-        DeviceProvisioning d = new DeviceProvisioning(mSelectedType
-                , currentUUID
+        DeviceProvisioning d = new DeviceProvisioning(mSelectedDeviceType
+                , uid
                 , mEtDeviceName.getText().toString()
+                , mSwitchIsActive.isChecked()
                 , metadata);
 
         getIVigilateManager().provisionDevice(d, new IVigilateApiCallback<String>() {
             @Override
             public void success(String resultMessage) {
-                mCurrDeviceSighting.setDeviceType(mSelectedType.name());
-                mCurrDeviceSighting.setDeviceUUIDType(mSelectedUUID.name());
-                mCurrDeviceSighting.setDeviceName(mEtDeviceName.getText().toString());
-                mCurrDeviceSighting.setProvisioned(true);
-                mCurrDeviceSighting.setTypeIconId(typeIconId);
+                // Update internal list of provisioned devices
+                String uid = mSelectedIdentifierType == DeviceProvisioning.IdentifierType.MAC ?
+                        mCurrentDeviceSighting.getMac() : mCurrentDeviceSighting.getUUID();
+                Device updatedDevice = mProvisionedDevices.get(uid);
+                if (updatedDevice != null) {
+                    updatedDevice.setDeviceType(mSelectedDeviceType);
+                    updatedDevice.setName(mEtDeviceName.getText().toString());
+                    updatedDevice.setIsActive(mSwitchIsActive.isChecked());
 
-                String key = mCurrDeviceSighting.getMac() + "|" + mCurrDeviceSighting.getUUID();
+                    mProvisionedDevices.put(updatedDevice.getUid(), updatedDevice);
+                } else {
+                    Device newDevice = new Device(mEtDeviceName.getText().toString()
+                            , mSelectedDeviceType
+                            , mCurrentDeviceSighting.getBattery()
+                            , mSwitchIsActive.isChecked()
+                            , uid);
+
+                    mProvisionedDevices.put(newDevice.getUid(), newDevice);
+                }
+
+                // Update UI list of sightings
+                mCurrentDeviceSighting.setDeviceType(mSelectedDeviceType);
+                mCurrentDeviceSighting.setIdentifierType(mSelectedIdentifierType);
+                mCurrentDeviceSighting.setDeviceName(mEtDeviceName.getText().toString());
+                mCurrentDeviceSighting.setDeviceProvisioned(true);
+                mCurrentDeviceSighting.setDeviceActive(mSwitchIsActive.isChecked());
+                mCurrentDeviceSighting.setTypeIconId(getIconByType(mSelectedDeviceType));
+
+                String key = mCurrentDeviceSighting.getMac() + "|" + mCurrentDeviceSighting.getUUID();
                 //Overwrite the previous entry on the sightings map
-                mSightings.put(key, mCurrDeviceSighting);
+                mSightings.put(key, mCurrentDeviceSighting);
+
+
 
                 //notify adapter to refresh itself
                 mSightingAdapter.notifyDataSetChanged();
@@ -400,8 +443,9 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void getIconByType(DeviceProvisioning.Type type) {
-        switch(type){
+    private int getIconByType(DeviceProvisioning.DeviceType deviceType) {
+        int typeIconId = R.drawable.bf_icon;
+        switch(deviceType){
             case BeaconMovable:
                 typeIconId = R.drawable.bm_icon;
                 break;
@@ -419,6 +463,7 @@ public class MainActivity extends BaseActivity {
                 typeIconId = R.drawable.bf_icon;
                 break;
         }
+        return typeIconId;
     }
 
     private void runToastOnUIThread(final String toastText, final boolean isLong) {

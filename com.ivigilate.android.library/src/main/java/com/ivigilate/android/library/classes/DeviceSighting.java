@@ -14,12 +14,14 @@ public class DeviceSighting {
     private String mPayload;
 
     private String mDeviceName;
-    private boolean mProvisioned = false;
-    private int mTypeIconId;
-    private String mDeviceType;
-    private String mDeviceUUIDType;
 
     public DeviceSighting() {}
+
+    public DeviceSighting(DeviceSighting deviceSighting) {
+        mBluetoothDevice = deviceSighting.mBluetoothDevice;
+        mRssi = deviceSighting.mRssi;
+        mBytes = deviceSighting.mBytes;
+    }
 
     public DeviceSighting(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
         mBluetoothDevice = bluetoothDevice;
@@ -28,7 +30,7 @@ public class DeviceSighting {
     }
 
     public String getMac() {
-        if (getManufacturer().contains("C6A0")) {
+        if (getManufacturer().contains("C6A0")) { // Gimbal
             return "";
         } else {
             return mBluetoothDevice.getAddress().replace(":", "");
@@ -63,10 +65,10 @@ public class DeviceSighting {
     }
 
     public String getUUID() {
-        if (getPayload().length() > 50) {
-            String uuid = getPayload().substring(18, 50);
-            return !getManufacturer().contains("4C00") &&
-                    uuid.contains("0000") ? "" : uuid;
+        if (getPayload().length() > 50 && getManufacturer().contains("4C00")) {  // iBeacon
+            return getPayload().substring(18, 50);
+        } else if (getPayload().length() >= 62 && getManufacturer().contains("C6A0")) {  // Gimbal
+            return getPayload().substring(44, 62);
         } else {
             return "";
         }
@@ -76,7 +78,7 @@ public class DeviceSighting {
         if (getUUID() == "" && getPayload().length() > 18) {
             return StringUtils.trimRight(getPayload().substring(18), '0');
         }
-        else if (getPayload().length() > 50) {
+        else if (getPayload().length() > 50 && !getManufacturer().contains("C6A0")) {  // NOT Gimbal
             return StringUtils.trimRight(getPayload().substring(50), '0');
         } else {
             return "";
@@ -101,37 +103,5 @@ public class DeviceSighting {
     public int getBattery() {
         return getUUID() != "" && getData() != "" && getData().length() > 11 ?
                 Integer.parseInt(getData().substring(9,11), 16) : 0;
-    }
-
-    public boolean isProvisioned() {
-        return mProvisioned;
-    }
-
-    public void setProvisioned(boolean provisioned) {
-        this.mProvisioned = provisioned;
-    }
-
-    public int getTypeIconId() {
-        return mTypeIconId;
-    }
-
-    public void setTypeIconId(int iconTypeId) {
-        this.mTypeIconId = iconTypeId;
-    }
-
-    public String getDeviceType() {
-        return mDeviceType;
-    }
-
-    public void setDeviceType(String type) {
-        this.mDeviceType = type;
-    }
-
-    public String getDeviceUUIDType() {
-        return mDeviceUUIDType;
-    }
-
-    public void setDeviceUUIDType(String uuidType) {
-        this.mDeviceUUIDType = uuidType;
     }
 }
