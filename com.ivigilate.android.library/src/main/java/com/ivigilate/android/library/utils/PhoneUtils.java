@@ -18,23 +18,30 @@ import android.telephony.TelephonyManager;
 
 public class PhoneUtils {
 
+    private static String mImei = null;
+    private static String mAndroidId = null;
+
     public static String getDeviceUniqueId(Context context) {
         String imei = getIMEI(context);
         return imei != null ? imei : getAndroidId(context);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    private static String getIMEI(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-                context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+    public static String getIMEI(Context context) {
+        if (mImei == null &&
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)) {
             TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            return tm != null ? tm.getDeviceId() : null;
+            mImei = (tm != null ? tm.getDeviceId() : null);
         }
-        return null;
+        return mImei;
     }
 
-    private static String getAndroidId(Context context) {
-        return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+    public static String getAndroidId(Context context) {
+        if (mAndroidId == null) {
+            mAndroidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        }
+        return mAndroidId;
     }
 
     public static float getBatteryLevel(Context context) {

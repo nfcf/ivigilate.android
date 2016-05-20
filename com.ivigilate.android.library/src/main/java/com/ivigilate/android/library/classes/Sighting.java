@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 
 public class Sighting {
+
     public enum Type {
         @SerializedName("A")
         AutoClosing,
@@ -12,17 +13,17 @@ public class Sighting {
         ManualClosing;
     }
 
-    public long timestamp;
-    public Type type;
-    public String detector_uid;
-    public int detector_battery;
-    public String beacon_mac;
-    public String beacon_uid;
-    public int beacon_battery;
-    public int rssi;
-    public GPSLocation location;
-    public String metadata;
-    public boolean is_active;
+    private long timestamp;
+    private Type type;
+    private String detector_uid;
+    private int detector_battery;
+    private String beacon_mac;
+    private String beacon_uid;
+    private int beacon_battery;
+    private int rssi;
+    private GPSLocation location;
+    private String metadata;
+    private boolean is_active;
 
     public Sighting() {
         this.timestamp = System.currentTimeMillis();
@@ -47,5 +48,93 @@ public class Sighting {
 
     public String getKey() {
         return beacon_mac + beacon_uid;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public String getDetectorUid() {
+        return detector_uid;
+    }
+
+    public void setDetectorUid(String detectorUid) {
+        this.detector_uid = detectorUid;
+    }
+
+    public int getDetectorBattery() {
+        return detector_battery;
+    }
+
+    public void setDetectorBattery(int detectorBattery) {
+        this.detector_battery = detectorBattery;
+    }
+
+    public String getBeaconMac() {
+        return beacon_mac;
+    }
+
+    public void setBeaconMac(String beaconMac) {
+        this.beacon_mac = beaconMac;
+    }
+
+    public String getBeaconUid() {
+        return beacon_uid;
+    }
+
+    public void setBeaconUid(String beaconUid) {
+        this.beacon_uid = beaconUid;
+    }
+
+    public int getBeaconBattery() {
+        return beacon_battery;
+    }
+
+    public void setBeaconBattery(int beaconBattery) {
+        this.beacon_battery = beaconBattery;
+    }
+
+    public int getRssi() {
+        return rssi;
+    }
+
+    public void setRssi(int rssi) {
+        this.rssi = rssi;
+    }
+
+    public GPSLocation getLocation() {
+        return location;
+    }
+
+    public void setLocation(GPSLocation location) {
+        this.location = location;
+    }
+
+    public String getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(String metadata) {
+        this.metadata = metadata;
+    }
+
+    public boolean is_active() {
+        return is_active;
+    }
+
+    public void setActive(boolean isActive) {
+        this.is_active = isActive;
     }
 }
