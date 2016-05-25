@@ -75,7 +75,7 @@ public class DeviceSighting {
     }
 
     public String getData() {
-        if (getUUID() == "" && getPayload().length() > 18) {
+        if (StringUtils.isNullOrBlank(getUUID()) && getPayload().length() > 18) {
             return StringUtils.trimRight(getPayload().substring(18), '0');
         }
         else if (getPayload().length() > 50 && !getManufacturer().contains("C6A0")) {  // NOT Gimbal
@@ -101,7 +101,7 @@ public class DeviceSighting {
     }
 
     public int getBattery() {
-        return getUUID() != "" && getData() != "" && getData().length() > 11 ?
+        return !StringUtils.isNullOrBlank(getUUID()) && !StringUtils.isNullOrBlank(getData()) && getData().length() > 11 ?
                 Integer.parseInt(getData().substring(9,11), 16) : 0;
     }
 }

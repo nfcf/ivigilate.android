@@ -70,8 +70,11 @@ public class MainActivity extends BaseActivity {
         mSightings = new LinkedHashMap<String, DeviceSightingEx>();
 
         mProvisionedDevices = new HashMap<String, Device>();
-        downloadBeacons();
-        downloadDetectors();
+
+        if (getIVigilateManager().getUser() != null) {
+            downloadBeacons();
+            downloadDetectors();
+        }
 
         bindControls();
 
@@ -232,8 +235,12 @@ public class MainActivity extends BaseActivity {
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id) {
                 mCurrentDeviceSighting = (DeviceSightingEx) parent.getItemAtPosition(position);
-                showProvisionDialog();
 
+                if (getIVigilateManager().getUser() != null) {
+                    showProvisionDialog();
+                } else {
+                    runToastOnUIThread("Need to be logged in to be able to provision devices.", true);
+                }
             }
         });
     }

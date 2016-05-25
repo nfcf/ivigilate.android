@@ -130,7 +130,7 @@ public class Sighting {
         this.metadata = metadata;
     }
 
-    public boolean is_active() {
+    public boolean isActive() {
         return is_active;
     }
 

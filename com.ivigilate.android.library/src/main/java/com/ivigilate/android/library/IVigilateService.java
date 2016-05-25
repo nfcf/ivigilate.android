@@ -334,16 +334,19 @@ public class IVigilateService extends Service implements
                     // Check timestamps and only send if more than StateChangeInterval has elapsed since last sighting
                     if (mActiveSightings.size() > 0) {
                         final long now = System.currentTimeMillis() + mIVigilateManager.getServerTimeOffset();
-                        for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
-                            if (now - activeSighting.getTimestamp() > mIVigilateManager.getServiceStateChangeInterval()) {
-                                activeSighting.setActive(false);  // This is to tell the server to close the sighting
-                                activeSighting.setDetectorBattery(currentDetectorBattery);
 
-                                sightings.add(activeSighting);
+                        synchronized(mActiveSightings) {
+                            for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
+                                if (activeSighting.isActive() &&
+                                        now - activeSighting.getTimestamp() > mIVigilateManager.getServiceStateChangeInterval()) {
+                                    activeSighting.setActive(false);  // This is to tell the server to close the sighting
+                                    activeSighting.setDetectorBattery(currentDetectorBattery);
 
-                                synchronized(mActiveSightings) {
-                                    mActiveSightings.remove(activeSighting.getKey());
+                                    sightings.add(activeSighting);
+
                                     mIVigilateManager.setServiceActiveSightings(mActiveSightings);
+                                } else if (!activeSighting.isActive()) {
+                                    sightings.add(activeSighting);
                                 }
                             }
                         }
@@ -358,6 +361,16 @@ public class IVigilateService extends Service implements
                                 final Long now = System.currentTimeMillis();
                                 mIVigilateManager.setServerTimeOffset(result.timestamp - now);
                                 mInvalidDetectorCheckTimestamp = 0L;
+
+                                synchronized (mActiveSightings) {
+                                    for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
+                                        // If the sighting was marked to be send and the send was successful...
+                                        if (!activeSighting.isActive()) {
+                                            mActiveSightings.remove(activeSighting.getKey());
+                                            mIVigilateManager.setServiceActiveSightings(mActiveSightings);
+                                        }
+                                    }
+                                }
 
                                 // The server may return a list of ignored sightings (due to a variety of reasons)...
                                 if (response.getStatus() == HttpURLConnection.HTTP_PARTIAL) {
@@ -405,5 +418,4 @@ public class IVigilateService extends Service implements
             }
         }
     }
-
 }

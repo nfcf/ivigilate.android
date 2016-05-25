@@ -2,12 +2,9 @@ package com.ivigilate.android.app.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.CursorLoader;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
@@ -61,7 +58,11 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
         bindControls();
 
-        showHideViews();
+        showProgress(false);
+
+        if (getIVigilateManager().getUser() != null) {
+            mEmailView.setText(getIVigilateManager().getUser().email);
+        }
 
         checkRequiredPermissions();
 
@@ -110,7 +111,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             }
         });
 
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {;
             mEmailView.setText("a@b.com");
             mPasswordView.setText("123");
         }
@@ -122,26 +123,23 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 attemptLogin();
             }
         });
+
+        TextView tvNoLogin = (TextView) findViewById(R.id.tvNoLogin);
+        tvNoLogin.setOnClickListener(new OnClickListener() {
+                                                 @Override
+                                                 public void onClick(View v) {
+                                                     gotoMainActivity();
+                                                 }
+                                             });
     }
 
-    private void showHideViews() {
+    private void gotoMainActivity() {
+        Logger.d("Starting MainActivity...");
+        showProgress(true);
 
-        if (getIVigilateManager().getUser() != null) {
-            Logger.d("User is already logged in.");
-
-            mSvLogin.setVisibility(View.GONE);
-
-            mEmailView.setText(getIVigilateManager().getUser().email);
-
-            Intent i = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(i);
-            finish();
-
-        } else {
-            Logger.d("User is not logged in.");
-
-            mSvLogin.setVisibility(View.VISIBLE);
-        }
+        Intent i = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(i);
+        finish();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -260,7 +258,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 public void success(User user) {
                     showProgress(false);
                     if (user != null) {
-                        showHideViews();
+                        gotoMainActivity();
                     } else {
                         mPasswordView.setError(getString(R.string.error_incorrect_password));
                         mPasswordView.requestFocus();

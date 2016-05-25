@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -25,6 +26,7 @@ import retrofit.client.OkClient;
 public class Rest {
     static final String IVIGILATE_DEV_HOSTNAME = "dev.ivigilate.com";
     static final String IVIGILATE_PRD_HOSTNAME = "portal.ivigilate.com";
+    static final int TIMEOUT_IN_SECONDS = 15;
 
     public static <T> T createService(Class<T> serviceClass, Context context, final String serverAddress) {
         return createService(serviceClass, context, serverAddress, "");
@@ -66,6 +68,8 @@ public class Rest {
                 sslContext.init(null, tmf.getTrustManagers(), null);
 
                 OkHttpClient okHttpClient = new OkHttpClient();
+                okHttpClient.setReadTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                okHttpClient.setConnectTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
                 okHttpClient.setSslSocketFactory(sslContext.getSocketFactory());
                 okHttpClient.setHostnameVerifier(new HostnameVerifier() {
                     @Override
@@ -87,7 +91,11 @@ public class Rest {
                 return null;
             }
         } else {
-            builder = builder.setClient(new OkClient());
+            OkHttpClient okHttpClient = new OkHttpClient();
+            okHttpClient.setReadTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+            okHttpClient.setConnectTimeout(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+
+            builder = builder.setClient(new OkClient(okHttpClient));
         }
 
         if (!StringUtils.isNullOrBlank(authToken)) {
