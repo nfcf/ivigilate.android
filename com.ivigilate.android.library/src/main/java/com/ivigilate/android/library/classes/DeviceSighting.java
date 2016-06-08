@@ -65,7 +65,7 @@ public class DeviceSighting {
     }
 
     public String getUUID() {
-        if (getPayload().length() > 50 && getManufacturer().contains("4C00")) {  // iBeacon
+        if (getPayload().length() > 50 && getManufacturer().contains("4C00") && getBleType().contains("0215")) {  // iBeacon
             return getPayload().substring(18, 50);
         } else if (getPayload().length() >= 62 && getManufacturer().contains("C6A0")) {  // Gimbal
             return getPayload().substring(44, 62);
