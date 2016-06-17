@@ -2,10 +2,11 @@ package com.ivigilate.android.library.classes;
 
 import android.bluetooth.BluetoothDevice;
 
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.utils.BleAdvUtils;
 import com.ivigilate.android.library.utils.StringUtils;
 
-public class DeviceSighting {
+public class DeviceSighting implements IDeviceSighting {
 
     private BluetoothDevice mBluetoothDevice;  // this can be used to connect to BT services
     private int mRssi;

@@ -6,9 +6,12 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.nfc.NdefRecord;
+import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.RemoteException;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,8 +24,10 @@ import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
+import com.ivigilate.android.library.classes.NFCdeviceSighting;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.Sighting;
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.IVigilateApi;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.PhoneUtils;
@@ -51,6 +56,12 @@ public class IVigilateService extends Service implements
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, BeaconConsumer {
 
+    public class Binder extends android.os.Binder {
+        IVigilateService getService() {
+            return IVigilateService.this;
+        }
+    }
+
     private static String REGION_ID = "com.ivigilate.android.region";
     private static final Long IGNORE_INTERVAL = 60 * 60 * 1000L;
 
@@ -71,13 +82,17 @@ public class IVigilateService extends Service implements
     private HashMap<String, Long> mIgnoreSightings;
     private HashMap<String, Sighting> mActiveSightings;
 
+    private final IBinder iVigilateServiceBinder = new Binder();
+
+
     public IVigilateService() {
     }
 
     @Override
     public IBinder onBind(Intent arg0) {
-        return null;
+        return iVigilateServiceBinder;
     }
+
 
     @Override
     public void onCreate() {
@@ -195,7 +210,7 @@ public class IVigilateService extends Service implements
         mBeaconManager.setNonBeaconLeScanCallback(new NonBeaconLeScanCallback() {
             @Override
             public void onNonBeaconLeScan(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
-                handleNonBeaconSighting(bluetoothDevice, rssi, bytes);
+                handleBleSighting(bluetoothDevice, rssi, bytes);
             }
         });
 
@@ -204,6 +219,10 @@ public class IVigilateService extends Service implements
         } catch (RemoteException e) {
             Logger.e("Error on startRangingBeaconsInRegion(): " + e.getMessage());
         }
+    }
+
+    public void ndfSighted(Tag tag, NdefRecord[] records) {
+        handleNdfSighting(tag, records);
     }
 
     @Override
@@ -231,10 +250,16 @@ public class IVigilateService extends Service implements
         return START_NOT_STICKY;
     }
 
-    private void handleNonBeaconSighting(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
-        try {
-            DeviceSighting deviceSighting = new DeviceSighting(bluetoothDevice, rssi, bytes);
+    private void handleNdfSighting(Tag tag, NdefRecord[] records) {
+        handleSighting(new NFCdeviceSighting(tag, records), 0);
+    }
 
+    private void handleBleSighting(Parcelable device, int rssi, byte[] bytes) {
+        handleSighting(new DeviceSighting((BluetoothDevice) device, rssi, bytes), rssi);
+    }
+
+    private void handleSighting(IDeviceSighting deviceSighting, int rssi) {
+        try {
             mIVigilateManager.onDeviceSighting(deviceSighting);
 
             if (mDequeSightings != null) { // This should never be null but just making sure...
@@ -314,11 +339,11 @@ public class IVigilateService extends Service implements
                 Logger.i("SendSightingsThread is up and running.");
 
                 while (!mAbortApiThread) {
-                    int currentDetectorBattery = (int)PhoneUtils.getBatteryLevel(getApplicationContext());
+                    int currentDetectorBattery = (int) PhoneUtils.getBatteryLevel(getApplicationContext());
 
                     // Take Sightings from queue and add them to List to be sent to server
                     final List<Sighting> sightings = new ArrayList<Sighting>();
-                    synchronized(mDequeSightings) {
+                    synchronized (mDequeSightings) {
                         for (int i = 0; i < 100; i++) {
                             if (mDequeSightings.isEmpty()) break;
                             else {
@@ -335,7 +360,7 @@ public class IVigilateService extends Service implements
                     if (mActiveSightings.size() > 0) {
                         final long now = System.currentTimeMillis() + mIVigilateManager.getServerTimeOffset();
 
-                        synchronized(mActiveSightings) {
+                        synchronized (mActiveSightings) {
                             for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
                                 if (activeSighting.isActive() &&
                                         now - activeSighting.getTimestamp() > mIVigilateManager.getServiceStateChangeInterval()) {
@@ -391,7 +416,8 @@ public class IVigilateService extends Service implements
                                 final Long now = System.currentTimeMillis();
                                 try {
                                     Gson gson = new Gson();
-                                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                                    Type type = new TypeToken<ApiResponse<String>>() {
+                                    }.getType();
                                     ApiResponse<String> errorObj = gson.fromJson(error, type);
 
                                     mIVigilateManager.setServerTimeOffset(errorObj.timestamp - now);

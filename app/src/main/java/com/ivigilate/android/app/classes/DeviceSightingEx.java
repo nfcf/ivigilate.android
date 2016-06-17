@@ -2,6 +2,7 @@ package com.ivigilate.android.app.classes;
 
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
 
 public class DeviceSightingEx extends DeviceSighting {
 
@@ -53,7 +54,7 @@ public class DeviceSightingEx extends DeviceSighting {
 
     public DeviceSightingEx() {}
 
-    public DeviceSightingEx(DeviceSighting deviceSighting) {
-        super(deviceSighting);
+    public DeviceSightingEx(IDeviceSighting deviceSighting) {
+        super((DeviceSighting)deviceSighting);
     }
 }

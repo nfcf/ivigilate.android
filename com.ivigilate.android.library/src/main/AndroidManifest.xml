@@ -5,7 +5,7 @@
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" /><!-- IMEI -->
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/><!-- GPS -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /><!-- GPS -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -15,25 +15,58 @@
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+    <uses-permission android:name="android.permission.NFC" />
+
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
 
     <application>
-        <receiver android:name=".IVigilateServiceController"
+        <receiver
+            android:name=".IVigilateServiceController"
             android:exported="false">
-            <intent-filter >
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
-                <data android:scheme="package" android:path="com.ivigilate.android.library"/>
+                <data
+                    android:path="com.ivigilate.android.library"
+                    android:scheme="package" />
             </intent-filter>
         </receiver>
 
-        <service android:enabled="true"
+        <service
+            android:name=".IVigilateService"
+            android:enabled="true"
             android:exported="false"
-            android:isolatedProcess="false"
-            android:name=".IVigilateService" />
+            android:isolatedProcess="false" />
+
+        <activity
+            android:name=".NfcActivity"
+            android:label="IVigilate NFC"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:windowSoftInputMode="stateHidden|adjustResize|adjustPan">
+
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/tech_filter" />
+
+        </activity>
     </application>
 
 </manifest>

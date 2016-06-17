@@ -2,9 +2,12 @@ package com.ivigilate.android.library;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.wifi.WifiManager;
+import android.os.IBinder;
 import android.os.PowerManager;
 
 import com.google.gson.Gson;
@@ -13,7 +16,6 @@ import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
-import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.Sighting;
@@ -22,6 +24,7 @@ import com.ivigilate.android.library.interfaces.ILocationListener;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApi;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.PhoneUtils;
 
@@ -59,10 +62,24 @@ public class IVigilateManager {
     private static IVigilateManager mInstance;
     private static BackgroundPowerSaver mBackgroundPowerSaver;
 
+    protected IVigilateService iVigilateService;
+    protected ServiceConnection mServiceConn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            iVigilateService =  ((IVigilateService.Binder) binder).getService();
+            //Log.d(LOG_TAG, "onServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            //Log.d(LOG_TAG, "onServiceDisconnected");
+            iVigilateService = null;
+        }
+    };
+
     private IVigilateManager(Context context) {
         mContext = context;
         mSettings = new Settings(context);
-
         mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser() != null ? mSettings.getUser().token : "");
     }
 
@@ -207,13 +224,13 @@ public class IVigilateManager {
     public void acquireLocks() {
         PowerManager powerManager = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "iVigilateWakelock");
-        if(!mWakeLock.isHeld()){
+        if (!mWakeLock.isHeld()) {
             mWakeLock.acquire();
         }
 
         WifiManager wm = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mWifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL, "iVigilateWifiLock");
-        if(!mWifiLock.isHeld()){
+        if (!mWifiLock.isHeld()) {
             mWifiLock.acquire();
         }
     }
@@ -332,7 +349,8 @@ public class IVigilateManager {
                 String error = retrofitError.getLocalizedMessage();
                 try {
                     Gson gson = new Gson();
-                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    Type type = new TypeToken<ApiResponse<String>>() {
+                    }.getType();
                     ApiResponse<String> errorObj = gson.fromJson(error, type);
                     mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
 
@@ -351,7 +369,7 @@ public class IVigilateManager {
         mApi.getBeacons(new Callback<List<Device>>() {
             @Override
             public void success(List<Device> result, Response response) {
-                if(callback != null) callback.success(result);
+                if (callback != null) callback.success(result);
             }
 
             @Override
@@ -359,7 +377,8 @@ public class IVigilateManager {
                 String error = retrofitError.getLocalizedMessage();
                 try {
                     Gson gson = new Gson();
-                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    Type type = new TypeToken<ApiResponse<String>>() {
+                    }.getType();
                     ApiResponse<String> errorObj = gson.fromJson(error, type);
                     mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
 
@@ -378,7 +397,7 @@ public class IVigilateManager {
         mApi.getDetectors(new Callback<List<Device>>() {
             @Override
             public void success(List<Device> result, Response response) {
-                if(callback != null) callback.success(result);
+                if (callback != null) callback.success(result);
             }
 
             @Override
@@ -386,7 +405,8 @@ public class IVigilateManager {
                 String error = retrofitError.getLocalizedMessage();
                 try {
                     Gson gson = new Gson();
-                    Type type = new TypeToken<ApiResponse<String>>() {}.getType();
+                    Type type = new TypeToken<ApiResponse<String>>() {
+                    }.getType();
                     ApiResponse<String> errorObj = gson.fromJson(error, type);
                     mSettings.setServerTimeOffset(errorObj.timestamp - System.currentTimeMillis());
 
@@ -402,7 +422,7 @@ public class IVigilateManager {
     }
 
 
-    protected void onDeviceSighting(DeviceSighting deviceSighting) {
+    protected void onDeviceSighting(IDeviceSighting deviceSighting) {
         if (mSightingListener != null) {
             mSightingListener.onDeviceSighting(deviceSighting);
         }
@@ -437,6 +457,7 @@ public class IVigilateManager {
         if (IVigilateServiceController.getServiceIntent() != null &&
                 IVigilateServiceController.isServiceRunning(mContext, IVigilateService.class)) {
             mContext.stopService(IVigilateServiceController.getServiceIntent());
+            mContext.unbindService(mServiceConn);
         }
     }
 

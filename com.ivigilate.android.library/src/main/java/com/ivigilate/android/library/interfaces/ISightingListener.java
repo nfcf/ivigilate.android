@@ -1,9 +1,10 @@
 package com.ivigilate.android.library.interfaces;
 
-import com.ivigilate.android.library.classes.DeviceSighting;
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
 
 public interface ISightingListener {
 
-    void onDeviceSighting(DeviceSighting deviceSighting);
+    void onDeviceSighting(IDeviceSighting deviceSighting);
 
 }
+

@@ -5,13 +5,17 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.nfc.NfcAdapter;
+import android.nfc.NfcManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.widget.Toast;
@@ -40,11 +44,19 @@ public class BaseActivity extends Activity {
             startActivityForResult(enableBtIntent, 1);
             return;
         }
+
+        //Verify if NFC is supported and enabled
+        NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (nfcAdapter == null) {
+            Toast.makeText(this, "NFC not supported on this device", Toast.LENGTH_SHORT).show();
+        } else if (!nfcAdapter.isEnabled()) {
+            Toast.makeText(this, "Please enable NFC in Settings", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
     protected void checkRequiredPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
                             Manifest.permission.READ_PHONE_STATE,
                             Manifest.permission.READ_CONTACTS},

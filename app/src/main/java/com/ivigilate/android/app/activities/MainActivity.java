@@ -29,6 +29,7 @@ import com.ivigilate.android.library.IVigilateManager;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.library.utils.StringUtils;
@@ -203,7 +204,7 @@ public class MainActivity extends BaseActivity {
 
                     getIVigilateManager().setSightingListener(new ISightingListener() {
                         @Override
-                        public void onDeviceSighting(final DeviceSighting deviceSighting) {
+                        public void onDeviceSighting(final IDeviceSighting deviceSighting) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {

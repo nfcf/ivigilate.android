@@ -26,6 +26,7 @@ public class IVigilateServiceController extends BroadcastReceiver {
             iVigilateManager.setKeepServiceAliveAlarm();  // this restarts the alarmManager if required...
 
             sIVigilateServiceIntent = new Intent(context, IVigilateService.class);
+            context.bindService(sIVigilateServiceIntent, iVigilateManager.mServiceConn, Context.BIND_AUTO_CREATE);
             context.startService(sIVigilateServiceIntent);
         }
     }
