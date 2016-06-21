@@ -19,7 +19,7 @@ class Settings {
 
 	private static final String DEFAULT_SERVER_ADDRESS = "https://portal.ivigilate.com";
 	private static final int DEFAULT_SERVICE_SEND_INTERVAL = 1 * 1000;
-	private static final int DEFAULT_SERVICE_STATE_CHANGE_INTERVAL = 0;
+	private static final int DEFAULT_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL = 0;
 
 	private static final int DEFAULT_LOCATION_REQUEST_INTERVAL = 30 * 1000;
 	private static final int DEFAULT_LOCATION_REQUEST_FASTEST_INTERVAL = 20 * 1000;
@@ -96,10 +96,10 @@ class Settings {
 	public void setServiceSendInterval(int value){ sharedPreferences.edit().putInt(SETTINGS_SERVICE_SEND_INTERVAL, value > 0 ? value : DEFAULT_SERVICE_SEND_INTERVAL).commit(); }
 
 	public int getServiceSightingStateChangeInterval() {
-		return sharedPreferences.getInt(SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL, DEFAULT_SERVICE_STATE_CHANGE_INTERVAL); }
+		return sharedPreferences.getInt(SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL, DEFAULT_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL); }
 
 	public void setServiceSightingStateChangeInterval(int value) {
-		sharedPreferences.edit().putInt(SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL, value >= 0 ? value : DEFAULT_SERVICE_STATE_CHANGE_INTERVAL).commit(); }
+		sharedPreferences.edit().putInt(SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL, value >= 0 ? value : DEFAULT_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL).commit(); }
 
 	public JsonObject getServiceSightingMetadata() {
 		JsonParser parser = new JsonParser();

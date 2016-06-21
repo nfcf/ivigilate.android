@@ -377,7 +377,7 @@ public class IVigilateService extends Service implements
                                 if (response.getStatus() == HttpURLConnection.HTTP_PARTIAL) {
                                     if (result.data != null) {
                                         if (result.data.ignored_beacons.size() > 0) {
-                                            synchronized(mDequeSightings) {
+                                            synchronized(mActiveSightings) {
                                                 for (String ignoredBeaconKey : result.data.ignored_beacons) {
                                                     // Mark it as needing to be sent again...Only used in ManualClosing
                                                     mActiveSightings.remove(ignoredBeaconKey);
