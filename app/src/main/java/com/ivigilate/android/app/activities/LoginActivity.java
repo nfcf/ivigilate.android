@@ -137,6 +137,8 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         Logger.d("Starting MainActivity...");
         showProgress(true);
 
+        getIVigilateManager().clearServiceCache();  // Fresh start...
+
         Intent i = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(i);
         finish();

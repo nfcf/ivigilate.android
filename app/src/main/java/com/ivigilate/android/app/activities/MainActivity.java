@@ -82,6 +82,8 @@ public class MainActivity extends BaseActivity {
 
         checkRequiredPermissions();
 
+        mBtnStartStop.callOnClick(); // call the onClick when we first come in to this screen...
+
         Logger.d("Finished.");
     }
 
@@ -185,7 +187,7 @@ public class MainActivity extends BaseActivity {
         mBtnStartStop.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isScanning) {
+                if (isScanning) {  // was scanning so stop it (and change label to scan)...
                     mBtnStartStop.setText("SCAN");
                     getIVigilateManager().setSightingListener(null);
                     mSightings.clear();
@@ -197,7 +199,7 @@ public class MainActivity extends BaseActivity {
                             mSightingAdapter.notifyDataSetChanged();
                         }
                     });
-                } else {
+                } else {  // was stopped so start scanning (and change label to stop)...
                     mBtnStartStop.setText("STOP");
                     mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
 

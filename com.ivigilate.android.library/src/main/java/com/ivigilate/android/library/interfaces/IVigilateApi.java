@@ -1,5 +1,6 @@
 package com.ivigilate.android.library.interfaces;
 
+import com.ivigilate.android.library.classes.AddSightingResponse;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
@@ -24,7 +25,7 @@ public interface IVigilateApi {
     void provisionDevice(@Body DeviceProvisioning deviceProvisioning, Callback<ApiResponse<String>> cb);
 
     @POST("/api/v1/addsightings/") // this one does not require login
-    void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<List<String>>> cb);
+    void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<AddSightingResponse>> cb);
 
     @GET("/api/v1/beacons/")
     void getBeacons(Callback<List<Device>> cb);

@@ -16,6 +16,8 @@ import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 
+import java.lang.reflect.Method;
+
 public class PhoneUtils {
 
     private static String mImei = null;
@@ -88,6 +90,28 @@ public class PhoneUtils {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Note: you will need to have permission android.permission.ACCESS_NETWORK_STATE to be able to use this method.
+     * @param context
+     * @return true or false
+     */
+    public static boolean isMobileDataEnabled(Context context) {
+        boolean mobileDataEnabled = false; // Assume disabled
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        try {
+            Class cmClass = Class.forName(cm.getClass().getName());
+            Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+            method.setAccessible(true); // Make the method callable
+            // get the setting for "mobile data"
+            mobileDataEnabled = (Boolean)method.invoke(cm);
+        } catch (Exception ex) {
+            // Some problem accessible private API
+        }
+
+        return mobileDataEnabled;
     }
 
 }
