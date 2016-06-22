@@ -277,14 +277,16 @@ public class IVigilateService extends Service implements
                         }
 
                         if (!ignoreSighting &&
-                                (type == Sighting.Type.AutoClosing || !mActiveSightings.containsKey(sighting.getKey()))) {
+                                (type == Sighting.Type.AutoClosing ||
+                                        !mActiveSightings.containsKey(sighting.getKey()) ||
+                                        !mActiveSightings.get(sighting.getKey()).isActive())) {
                             synchronized (mDequeSightings) {
                                 mDequeSightings.putLast(sighting); // Queue to be sent to server
                             }
                         }
 
                         if (!ignoreSighting && type == Sighting.Type.ManualClosing) {
-                            // need to keep updating this ActiveSightings list as I'm comparing the timestamps...
+                            // need to keep updating this ActiveSightings list as I'm comparing the timestamps and rssi...
                             // that's why this is in a separate if and not included in the former
                             synchronized (mActiveSightings) {
                                 mActiveSightings.put(sighting.getKey(), sighting);
