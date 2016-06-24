@@ -6,7 +6,7 @@ import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.utils.BleAdvUtils;
 import com.ivigilate.android.library.utils.StringUtils;
 
-public class DeviceSighting implements IDeviceSighting {
+public class BleDeviceSighting implements IDeviceSighting {
 
     private BluetoothDevice mBluetoothDevice;  // this can be used to connect to BT services
     private int mRssi;
@@ -16,15 +16,15 @@ public class DeviceSighting implements IDeviceSighting {
 
     private String mDeviceName;
 
-    public DeviceSighting() {}
+    public BleDeviceSighting() {}
 
-    public DeviceSighting(DeviceSighting deviceSighting) {
+    public BleDeviceSighting(BleDeviceSighting deviceSighting) {
         mBluetoothDevice = deviceSighting.mBluetoothDevice;
         mRssi = deviceSighting.mRssi;
         mBytes = deviceSighting.mBytes;
     }
 
-    public DeviceSighting(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
+    public BleDeviceSighting(BluetoothDevice bluetoothDevice, int rssi, byte[] bytes) {
         mBluetoothDevice = bluetoothDevice;
         mRssi = rssi;
         mBytes = bytes;

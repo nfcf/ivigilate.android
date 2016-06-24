@@ -7,9 +7,9 @@ import com.google.gson.annotations.SerializedName;
 public class Sighting {
 
     public enum Type {
-        @SerializedName("A")
+        @SerializedName("AC")
         AutoClosing,
-        @SerializedName("M")
+        @SerializedName("MC")
         ManualClosing;
     }
 

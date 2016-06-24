@@ -118,8 +118,8 @@ public class IVigilateManager {
     }
 
     public void clearServiceCache() {
-        // Clears invalid beacons from the list so we can send them again to the server...
         mSettings.setServiceInvalidBeacons(null);
+        mSettings.setServiceActiveSightings(null);
     }
 
     protected HashMap<String, Long> getServiceInvalidBeacons() {

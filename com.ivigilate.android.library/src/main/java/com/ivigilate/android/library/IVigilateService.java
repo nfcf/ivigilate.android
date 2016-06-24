@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.RemoteException;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -108,11 +109,6 @@ public class IVigilateService extends Service implements
         buildGoogleApiAndLocationRequest();
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
-        mBeaconManager.getBeaconParsers().clear();
-        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //altBeacon
-        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //kontakt / jaalee / estimote
-        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
-        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
 
         // These values are only used for devices not running Android 5.0+
         mBeaconManager.setForegroundScanPeriod(1400);  // default 1100
@@ -120,7 +116,14 @@ public class IVigilateService extends Service implements
         mBeaconManager.setBackgroundScanPeriod(2800);  //default 10000
         mBeaconManager.setBackgroundBetweenScanPeriod(1250);  // default 5 * 60 * 1000
 
-        //mBeaconManager.setAndroidLScanningDisabled(true);
+        // The following line kind of forces the above periods to work the same on all android versions
+        mBeaconManager.setAndroidLScanningDisabled(true);
+
+        mBeaconManager.getBeaconParsers().clear();
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //altBeacon
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //kontakt / jaalee / estimote
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
+        //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
 
         Logger.i("Finished...");
     }
@@ -282,7 +285,6 @@ public class IVigilateService extends Service implements
                         Logger.i("Beacon sighted: '%s','%s',%s,%s",
                                 deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi);
 
-                        Context context = getApplicationContext();
                         Sighting.Type type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
 
                         Sighting sighting = new Sighting(now, type,
@@ -335,6 +337,7 @@ public class IVigilateService extends Service implements
             }
         } catch (Exception ex) {
             Logger.e("Failed to handleNonBeaconSighting with exception: " + ex.getMessage());
+            Toast.makeText(context, "Failed to handleNonBeaconSighting...", Toast.LENGTH_SHORT).show();
         }
     }
 

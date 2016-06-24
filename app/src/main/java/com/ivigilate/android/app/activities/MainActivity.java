@@ -3,8 +3,10 @@ package com.ivigilate.android.app.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Process;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -44,6 +46,7 @@ public class MainActivity extends BaseActivity {
     private TextView mTvEmptySightings;
 
     private ListView mLvSightings;
+    private TextView mTvTrafficStats;
 
     private Button mBtnStartStop;
 
@@ -58,6 +61,9 @@ public class MainActivity extends BaseActivity {
     private DeviceSightingEx mCurrentDeviceSighting;
     private EditText mEtDeviceName;
     private Switch mSwitchIsActive;
+
+    private long rxStartTraffic;
+    private long txStartTraffic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +88,9 @@ public class MainActivity extends BaseActivity {
         showHideViews();
 
         checkRequiredPermissions();
+
+        rxStartTraffic = TrafficStats.getUidRxBytes(Process.myUid());
+        txStartTraffic = TrafficStats.getUidTxBytes(Process.myUid());
 
         mBtnStartStop.callOnClick(); // call the onClick when we first come in to this screen...
 
@@ -218,6 +227,11 @@ public class MainActivity extends BaseActivity {
 
                                     mSightingAdapter.notifyDataSetChanged();
 
+                                    long rxTraffic = TrafficStats.getUidRxBytes(Process.myUid()) - rxStartTraffic;
+                                    long txTraffic = TrafficStats.getUidTxBytes(Process.myUid()) - txStartTraffic;
+                                    mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic) + "B, " +
+                                                            "Tx: " + Long.toString(txTraffic) + "B");
+
                                     showHideViews();
                                 }
                             });
@@ -246,6 +260,8 @@ public class MainActivity extends BaseActivity {
                 }
             }
         });
+
+        mTvTrafficStats = (TextView) findViewById(R.id.tvTrafficStats);
     }
 
     private void checkSighting(DeviceSightingEx deviceSighting) {
@@ -436,8 +452,6 @@ public class MainActivity extends BaseActivity {
                 String key = mCurrentDeviceSighting.getMac() + "|" + mCurrentDeviceSighting.getUUID();
                 //Overwrite the previous entry on the sightings map
                 mSightings.put(key, mCurrentDeviceSighting);
-
-
 
                 //notify adapter to refresh itself
                 mSightingAdapter.notifyDataSetChanged();
