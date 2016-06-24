@@ -4,7 +4,7 @@ import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
 
-public class DeviceSightingEx extends DeviceSighting {
+public class DeviceSightingEx extends BaseDeviceSightingEx {
 
     private boolean mDeviceActive = false;
     private boolean mDeviceProvisioned = false;
@@ -52,9 +52,7 @@ public class DeviceSightingEx extends DeviceSighting {
         this.mIdentifierType = identifierType;
     }
 
-    public DeviceSightingEx() {}
-
     public DeviceSightingEx(IDeviceSighting deviceSighting) {
-        super((DeviceSighting)deviceSighting);
+        super(deviceSighting);
     }
 }

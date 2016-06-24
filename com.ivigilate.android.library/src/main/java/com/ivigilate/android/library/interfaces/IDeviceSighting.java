@@ -24,4 +24,6 @@ public interface IDeviceSighting {
     public void setRssi(int rssi);
 
     public int getBattery();
+
+    public String getType();
 }

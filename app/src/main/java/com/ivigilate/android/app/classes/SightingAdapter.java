@@ -78,7 +78,7 @@ public class SightingAdapter extends BaseAdapter {
         tvManufacturerValue.setText(!StringUtils.isNullOrBlank(manufacturer) ? manufacturer : "N/A");
 
         TextView tvTypeValue = (TextView) rowView.findViewById(R.id.tvTypeValue);
-        String type = sighting.getBleType();
+        String type = sighting.getType();
         tvTypeValue.setText(!StringUtils.isNullOrBlank(type) ? type : "N/A");
 
 

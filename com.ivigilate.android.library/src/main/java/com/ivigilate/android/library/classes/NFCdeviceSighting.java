@@ -9,6 +9,7 @@ import android.nfc.Tag;
 import android.widget.Adapter;
 
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
+import com.ivigilate.android.library.utils.NFCUtils;
 import com.ivigilate.android.library.utils.StringUtils;
 
 /**
@@ -19,13 +20,10 @@ public class NFCdeviceSighting implements IDeviceSighting {
     private Tag mTag;
     private int mRssi;
 
-    private String mPayload;
-
     private String mDeviceName;
 
-    private NdefRecord [] mRecords;
+    private NdefRecord[] mRecords;
 
-    private String mTechList;
 
     public NFCdeviceSighting() {
     }
@@ -36,7 +34,7 @@ public class NFCdeviceSighting implements IDeviceSighting {
         mRssi = deviceSighting.mRssi;
     }
 
-    public NFCdeviceSighting(Tag tag, NdefRecord [] records) {
+    public NFCdeviceSighting(Tag tag, NdefRecord[] records) {
         mTag = tag;
         mRecords = records;
         mRssi = 0;
@@ -54,17 +52,18 @@ public class NFCdeviceSighting implements IDeviceSighting {
 
     @Override
     public String getName() {
-        return mDeviceName == null ? "N/A" : mDeviceName ;
+        return mDeviceName == null ? "N/A" : mDeviceName;
     }
 
     @Override
     public String getManufacturer() {
-        return "";
+        String manufacturerCode = StringUtils.bytesToHexString(mTag.getId()).substring(0,2);
+        return manufacturerCode + " " + NFCUtils.getManufacturerDescription(manufacturerCode);
     }
 
     @Override
     public String getUUID() {
-        return mTag == null ? "N/A" : StringUtils.bytesToHexString(mTag.getId());
+        return "NFC" + StringUtils.bytesToHexString(mTag.getId());
     }
 
     @Override
@@ -74,13 +73,13 @@ public class NFCdeviceSighting implements IDeviceSighting {
 
     @Override
     public String getPayload() {
-        String payload ="";
-        if(mRecords != null){
+        String payload = "";
+        if (mRecords != null) {
             for (int i = 0; i < mRecords.length; i++) {
                 payload += StringUtils.bytesToHexString(mRecords[i].getPayload()) + "\n";
             }
         }
-        return mPayload = payload;
+        return payload;
     }
 
     public int getRssi() {
@@ -95,13 +94,15 @@ public class NFCdeviceSighting implements IDeviceSighting {
         return 0;
     }
 
-    public String getTechList() {
-        if(mTag != null && mTag.getTechList() != null){
-            for (String tech : mTag.getTechList()) {
-                mTechList += tech + "\n";
-            }
-            return mTechList;
-        }
-        return "N/A";
+    public String[] getTechList() {
+        if(mTag != null) return mTag.getTechList();
+        return null;
+    }
+
+
+    public String getType() {
+         String tech = getTechList()[0];
+         int i = tech.lastIndexOf(".");
+         return getTechList()[0].substring(i + 1, tech.length());
     }
 }
