@@ -102,7 +102,7 @@ public class DeviceSighting implements IDeviceSighting {
     }
 
     public int getBattery() {
-        if (getManufacturer().contains("6561") && getBleType().contains("636F") &&
+        if (getManufacturer().contains("6561") && getType().contains("636F") &&
                 getData().length() > 32) {  // EM Micro
             //To map
             //[A, B] --> [a, b]
