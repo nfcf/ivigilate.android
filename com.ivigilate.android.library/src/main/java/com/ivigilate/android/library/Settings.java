@@ -19,7 +19,7 @@ class Settings {
 
 	private static final String DEFAULT_SERVER_ADDRESS = "https://portal.ivigilate.com";
 	private static final int DEFAULT_SERVICE_SEND_INTERVAL = 1 * 1000;
-	private static final int DEFAULT_SERVICE_STATE_CHANGE_INTERVAL = 0;
+	private static final int DEFAULT_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL = 0;
 
 	private static final int DEFAULT_LOCATION_REQUEST_INTERVAL = 30 * 1000;
 	private static final int DEFAULT_LOCATION_REQUEST_FASTEST_INTERVAL = 20 * 1000;
@@ -30,10 +30,10 @@ class Settings {
 	public static final String SETTINGS_SERVER_TIME_OFFSET = "server_time_offset";
 
     public static final String SETTINGS_SERVICE_ENABLED = "service_enabled";
-	public static final String SETTINGS_SERVICE_IGNORE_SIGHTINGS = "service_ignore_sightings";
+	public static final String SETTINGS_SERVICE_INVALID_BEACONS = "service_invalid_beacons";
 	public static final String SETTINGS_SERVICE_ACTIVE_SIGHTINGS = "service_active_sightings";
 	public static final String SETTINGS_SERVICE_SEND_INTERVAL = "service_send_interval";
-	public static final String SETTINGS_SERVICE_STATE_CHANGE_INTERVAL = "service_state_change_interval";
+	public static final String SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL = "service_sighting_state_change_interval";
 	public static final String SETTINGS_SERVICE_SIGHTING_METADATA = "service_sighting_metadata";
 
 	public static final String SETTINGS_LOCATION_REQUEST_INTERVAL = "location_request_interval";
@@ -63,18 +63,18 @@ class Settings {
 
     public void setServiceEnabled(boolean value){ sharedPreferences.edit().putBoolean(SETTINGS_SERVICE_ENABLED, value).commit(); }
 
-	public HashMap<String, Long> getServiceIgnoreSightings() {
+	public HashMap<String, Long> getServiceInvalidBeacons() {
 		Type type = new TypeToken<HashMap<String, Long>>() {
 		}.getType();
 		try {
-			return gson.fromJson(sharedPreferences.getString(SETTINGS_SERVICE_IGNORE_SIGHTINGS, "{}"), type);
+			return gson.fromJson(sharedPreferences.getString(SETTINGS_SERVICE_INVALID_BEACONS, "{}"), type);
 		} catch (Exception ex) {
 			return gson.fromJson("{}", type);
 		}
 	}
 
-	public void setServiceIgnoreSightings(HashMap<String, Long> ignoreSightings){
-		sharedPreferences.edit().putString(SETTINGS_SERVICE_IGNORE_SIGHTINGS, ignoreSightings != null ? gson.toJson(ignoreSightings) : "{}").commit();
+	public void setServiceInvalidBeacons(HashMap<String, Long> ignoreSightings){
+		sharedPreferences.edit().putString(SETTINGS_SERVICE_INVALID_BEACONS, ignoreSightings != null ? gson.toJson(ignoreSightings) : "{}").commit();
 	}
 
 	public HashMap<String, Sighting> getServiceActiveSightings() {
@@ -95,11 +95,11 @@ class Settings {
 
 	public void setServiceSendInterval(int value){ sharedPreferences.edit().putInt(SETTINGS_SERVICE_SEND_INTERVAL, value > 0 ? value : DEFAULT_SERVICE_SEND_INTERVAL).commit(); }
 
-	public int getServiceStateChangeInterval() {
-		return sharedPreferences.getInt(SETTINGS_SERVICE_STATE_CHANGE_INTERVAL, DEFAULT_SERVICE_STATE_CHANGE_INTERVAL); }
+	public int getServiceSightingStateChangeInterval() {
+		return sharedPreferences.getInt(SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL, DEFAULT_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL); }
 
-	public void setServiceStateChangeInterval(int value) {
-		sharedPreferences.edit().putInt(SETTINGS_SERVICE_STATE_CHANGE_INTERVAL, value >= 0 ? value : DEFAULT_SERVICE_STATE_CHANGE_INTERVAL).commit(); }
+	public void setServiceSightingStateChangeInterval(int value) {
+		sharedPreferences.edit().putInt(SETTINGS_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL, value >= 0 ? value : DEFAULT_SERVICE_SIGHTING_STATE_CHANGE_INTERVAL).commit(); }
 
 	public JsonObject getServiceSightingMetadata() {
 		JsonParser parser = new JsonParser();

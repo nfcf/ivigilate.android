@@ -21,6 +21,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.ivigilate.android.library.classes.AddSightingResponse;
 import com.ivigilate.android.library.classes.ApiResponse;
 import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
@@ -79,7 +80,7 @@ public class IVigilateService extends Service implements
     private IVigilateApi mApi;
 
     private long mInvalidDetectorCheckTimestamp;
-    private HashMap<String, Long> mIgnoreSightings;
+    private HashMap<String, Long> mInvalidBeacons;
     private HashMap<String, Sighting> mActiveSightings;
 
     private final IBinder iVigilateServiceBinder = new Binder();
@@ -101,7 +102,7 @@ public class IVigilateService extends Service implements
 
         mIVigilateManager = IVigilateManager.getInstance(this);
 
-        mIgnoreSightings = mIVigilateManager.getServiceIgnoreSightings();
+        mInvalidBeacons = mIVigilateManager.getServiceInvalidBeacons();
         mActiveSightings = mIVigilateManager.getServiceActiveSightings();
 
         buildGoogleApiAndLocationRequest();
@@ -113,10 +114,13 @@ public class IVigilateService extends Service implements
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
 
+        // These values are only used for devices not running Android 5.0+
         mBeaconManager.setForegroundScanPeriod(1400);  // default 1100
-        mBeaconManager.setForegroundBetweenScanPeriod(500);  // default 0
-        mBeaconManager.setBackgroundScanPeriod(2400);  //default 10000
-        mBeaconManager.setBackgroundBetweenScanPeriod(1000);  // default 5 * 60 * 1000
+        mBeaconManager.setForegroundBetweenScanPeriod(650);  // default 0
+        mBeaconManager.setBackgroundScanPeriod(2800);  //default 10000
+        mBeaconManager.setBackgroundBetweenScanPeriod(1250);  // default 5 * 60 * 1000
+
+        //mBeaconManager.setAndroidLScanningDisabled(true);
 
         Logger.i("Finished...");
     }
@@ -279,7 +283,7 @@ public class IVigilateService extends Service implements
                                 deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi);
 
                         Context context = getApplicationContext();
-                        Sighting.Type type = mIVigilateManager.getServiceStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
+                        Sighting.Type type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
 
                         Sighting sighting = new Sighting(now, type,
                                 PhoneUtils.getDeviceUniqueId(context), 0, //The detector battery will be updated before sending the sighting
@@ -287,28 +291,30 @@ public class IVigilateService extends Service implements
                                 mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(), mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null,
                                 mIVigilateManager.getServiceSightingMetadata());
 
-                        // Check if the sighting was set to be ignored...
-                        synchronized (mIgnoreSightings) {
-                            if (mIgnoreSightings.containsKey(sighting.getKey())) {
+                        // Check if the beacon was marked as invalid...
+                        synchronized (mInvalidBeacons) {
+                            if (mInvalidBeacons.containsKey(sighting.getKey())) {
                                 // Ignore sighting for IGNORE_INTERVAL
-                                if (now - mIgnoreSightings.get(sighting.getKey()) < IGNORE_INTERVAL) {
+                                if (now - mInvalidBeacons.get(sighting.getKey()) < IGNORE_INTERVAL) {
                                     ignoreSighting = true;
                                 } else {
-                                    mIgnoreSightings.remove(sighting.getKey());
-                                    mIVigilateManager.setServiceIgnoreSightings(mIgnoreSightings);
+                                    mInvalidBeacons.remove(sighting.getKey());
+                                    mIVigilateManager.setServiceInvalidBeacons(mInvalidBeacons);
                                 }
                             }
                         }
 
                         if (!ignoreSighting &&
-                                (type == Sighting.Type.AutoClosing || !mActiveSightings.containsKey(sighting.getKey()))) {
+                                (type == Sighting.Type.AutoClosing ||
+                                        !mActiveSightings.containsKey(sighting.getKey()) ||
+                                        !mActiveSightings.get(sighting.getKey()).isActive())) {
                             synchronized (mDequeSightings) {
                                 mDequeSightings.putLast(sighting); // Queue to be sent to server
                             }
                         }
 
                         if (!ignoreSighting && type == Sighting.Type.ManualClosing) {
-                            // need to keep updating this ActiveSightings list as I'm comparing the timestamps...
+                            // need to keep updating this ActiveSightings list as I'm comparing the timestamps and rssi...
                             // that's why this is in a separate if and not included in the former
                             synchronized (mActiveSightings) {
                                 mActiveSightings.put(sighting.getKey(), sighting);
@@ -363,7 +369,7 @@ public class IVigilateService extends Service implements
                         synchronized (mActiveSightings) {
                             for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
                                 if (activeSighting.isActive() &&
-                                        now - activeSighting.getTimestamp() > mIVigilateManager.getServiceStateChangeInterval()) {
+                                        now - activeSighting.getTimestamp() > mIVigilateManager.getServiceSightingStateChangeInterval()) {
                                     activeSighting.setActive(false);  // This is to tell the server to close the sighting
                                     activeSighting.setDetectorBattery(currentDetectorBattery);
 
@@ -379,9 +385,9 @@ public class IVigilateService extends Service implements
 
                     // If after the above, there are sightings in the list to be sent, send them!
                     if (sightings.size() > 0) {
-                        mApi.addSightings(sightings, new Callback<ApiResponse<List<String>>>() {
+                        mApi.addSightings(sightings, new Callback<ApiResponse<AddSightingResponse>>() {
                             @Override
-                            public void success(ApiResponse<List<String>> result, Response response) {
+                            public void success(ApiResponse<AddSightingResponse> result, Response response) {
                                 Logger.i("SendSightingsThread sent " + sightings.size() + " 'successfully'.");
                                 final Long now = System.currentTimeMillis();
                                 mIVigilateManager.setServerTimeOffset(result.timestamp - now);
@@ -389,7 +395,7 @@ public class IVigilateService extends Service implements
 
                                 synchronized (mActiveSightings) {
                                     for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
-                                        // If the sighting was marked to be send and the send was successful...
+                                        // If the sighting was marked to be send (for closing) and the send was successful...
                                         if (!activeSighting.isActive()) {
                                             mActiveSightings.remove(activeSighting.getKey());
                                             mIVigilateManager.setServiceActiveSightings(mActiveSightings);
@@ -397,14 +403,25 @@ public class IVigilateService extends Service implements
                                     }
                                 }
 
-                                // The server may return a list of ignored sightings (due to a variety of reasons)...
+                                // The server may return a list of invalid or ignored beacons (due to a variety of reasons)...
                                 if (response.getStatus() == HttpURLConnection.HTTP_PARTIAL) {
-                                    if (result.data != null && result.data.size() > 0) {
-                                        synchronized (mIgnoreSightings) {
-                                            for (String ignoreSightingKey : result.data) {
-                                                mIgnoreSightings.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
+                                    if (result.data != null) {
+                                        if (result.data.ignored_beacons.size() > 0) {
+                                            synchronized(mActiveSightings) {
+                                                for (String ignoredBeaconKey : result.data.ignored_beacons) {
+                                                    // Mark it as needing to be sent again...Only used in ManualClosing
+                                                    mActiveSightings.remove(ignoredBeaconKey);
+                                                }
                                             }
-                                            mIVigilateManager.setServiceIgnoreSightings(mIgnoreSightings);
+                                        }
+                                        if (result.data.invalid_beacons.size() > 0) {
+                                            synchronized (mInvalidBeacons) {
+                                                for (String ignoreSightingKey : result.data.invalid_beacons) {
+                                                    // Mark it as invalid to be ignored...
+                                                    mInvalidBeacons.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
+                                                }
+                                                mIVigilateManager.setServiceInvalidBeacons(mInvalidBeacons);
+                                            }
                                         }
                                     }
                                 }

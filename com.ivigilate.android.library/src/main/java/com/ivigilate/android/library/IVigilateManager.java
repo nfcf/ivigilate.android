@@ -117,12 +117,17 @@ public class IVigilateManager {
         return mSettings.getServiceEnabled();
     }
 
-    protected HashMap<String, Long> getServiceIgnoreSightings() {
-        return mSettings.getServiceIgnoreSightings();
+    public void clearServiceCache() {
+        // Clears invalid beacons from the list so we can send them again to the server...
+        mSettings.setServiceInvalidBeacons(null);
     }
 
-    protected void setServiceIgnoreSightings(HashMap<String, Long> ignoreSightings) {
-        mSettings.setServiceIgnoreSightings(ignoreSightings);
+    protected HashMap<String, Long> getServiceInvalidBeacons() {
+        return mSettings.getServiceInvalidBeacons();
+    }
+
+    protected void setServiceInvalidBeacons(HashMap<String, Long> invalidBeacons) {
+        mSettings.setServiceInvalidBeacons(invalidBeacons);
     }
 
     protected HashMap<String, Sighting> getServiceActiveSightings() {
@@ -141,12 +146,21 @@ public class IVigilateManager {
         mSettings.setServiceSendInterval(interval);
     }
 
-    protected int getServiceStateChangeInterval() {
-        return mSettings.getServiceStateChangeInterval();
+    protected int getServiceSightingStateChangeInterval() {
+        return mSettings.getServiceSightingStateChangeInterval();
     }
 
-    public void setServiceStateChangeInterval(int intervalInMilliSeconds) {
-        mSettings.setServiceStateChangeInterval(intervalInMilliSeconds);
+    /**
+     * Sets the interval after which a sighting is closed when a beacon is no longer seen
+     * This sets the sighting as either 'AutoClosing' or 'ManualClosing'.
+     * AutoClosing - All beacon sightings are sent to the server. The server runs a cron job to
+     * close sightings not seen for more than X seconds.
+     * ManualClosing - Only an open sighting and close sighting events are sent to the server
+     * respecting the interval value set.
+     * @param intervalInMilliSeconds the interval in ms for 'ManualClosing' or 0 (zero) for 'AutoClosing'
+     */
+    public void setServiceSightingStateChangeInterval(int intervalInMilliSeconds) {
+        mSettings.setServiceSightingStateChangeInterval(intervalInMilliSeconds);
     }
 
     public JsonObject getServiceSightingMetadata() {

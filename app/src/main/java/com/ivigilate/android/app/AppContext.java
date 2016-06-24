@@ -23,7 +23,7 @@ public class AppContext extends Application {
 
         mIVigilateManager = IVigilateManager.getInstance(this);
         mIVigilateManager.setServiceSendInterval(2 * 1000);
-        mIVigilateManager.setServiceStateChangeInterval(12 * 1000);
+        mIVigilateManager.setServiceSightingStateChangeInterval(0); //(12 * 1000);
         
         Logger.i("Finished...");
     }

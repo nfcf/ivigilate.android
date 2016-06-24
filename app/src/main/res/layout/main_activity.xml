@@ -60,9 +60,7 @@
         <ListView
             android:id="@+id/lvSightings"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/ivLogo"
-            android:paddingBottom="16dp"/>
+            android:layout_height="match_parent"/>
     </LinearLayout>
 
 </LinearLayout>

@@ -102,7 +102,20 @@ public class DeviceSighting implements IDeviceSighting {
     }
 
     public int getBattery() {
-        return !StringUtils.isNullOrBlank(getUUID()) && !StringUtils.isNullOrBlank(getData()) && getData().length() > 11 ?
-                Integer.parseInt(getData().substring(9,11), 16) : 0;
+        if (getManufacturer().contains("6561") && getBleType().contains("636F") &&
+                getData().length() > 32) {  // EM Micro
+            //To map
+            //[A, B] --> [a, b]
+            //use this formula
+            //(val - A)*(b-a)/(B-A) + a
+            float emBatteryLevel = Integer.parseInt(getData().substring(30, 32)) / (float)10;
+            return (int)((emBatteryLevel - (float)0.9) * ((float)100 - (float)0) /
+                    ((float)3 - (float)0.9) + ((float)0));
+        } else if (!StringUtils.isNullOrBlank(getUUID()) &&
+                !StringUtils.isNullOrBlank(getData()) && getData().length() > 11) {  // Not sure which devices send battery info this way...
+            return Integer.parseInt(getData().substring(9,11), 16);
+        } else {
+            return 0;
+        }
     }
 }
