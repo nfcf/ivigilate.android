@@ -11,7 +11,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.ivigilate.android.app.R;
-import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.utils.StringUtils;
 
 import java.util.LinkedHashMap;

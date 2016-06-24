@@ -24,9 +24,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.AddSightingResponse;
 import com.ivigilate.android.library.classes.ApiResponse;
-import com.ivigilate.android.library.classes.DeviceSighting;
+import com.ivigilate.android.library.classes.BleDeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
-import com.ivigilate.android.library.classes.NFCdeviceSighting;
+import com.ivigilate.android.library.classes.NdfDeviceSighting;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
@@ -100,6 +100,8 @@ public class IVigilateService extends Service implements
     public void onCreate() {
         Logger.d("Started...");
         super.onCreate();
+
+        mInvalidDetectorCheckTimestamp = 0L;
 
         mIVigilateManager = IVigilateManager.getInstance(this);
 
@@ -258,14 +260,16 @@ public class IVigilateService extends Service implements
     }
 
     private void handleNdfSighting(Tag tag, NdefRecord[] records) {
-        handleSighting(new NFCdeviceSighting(tag, records), 0);
+        handleSighting(new NdfDeviceSighting(tag, records), 0);
     }
 
     private void handleBleSighting(Parcelable device, int rssi, byte[] bytes) {
-        handleSighting(new DeviceSighting((BluetoothDevice) device, rssi, bytes), rssi);
+        handleSighting(new BleDeviceSighting((BluetoothDevice) device, rssi, bytes), rssi);
     }
 
     private void handleSighting(IDeviceSighting deviceSighting, int rssi) {
+        Context context = getApplicationContext();
+
         try {
             mIVigilateManager.onDeviceSighting(deviceSighting);
 
@@ -393,7 +397,9 @@ public class IVigilateService extends Service implements
                             public void success(ApiResponse<AddSightingResponse> result, Response response) {
                                 Logger.i("SendSightingsThread sent " + sightings.size() + " 'successfully'.");
                                 final Long now = System.currentTimeMillis();
-                                mIVigilateManager.setServerTimeOffset(result.timestamp - now);
+                                if (result.timestamp > 0) {
+                                    mIVigilateManager.setServerTimeOffset(result.timestamp - now);
+                                }
                                 mInvalidDetectorCheckTimestamp = 0L;
 
                                 synchronized (mActiveSightings) {
@@ -440,7 +446,9 @@ public class IVigilateService extends Service implements
                                     }.getType();
                                     ApiResponse<String> errorObj = gson.fromJson(error, type);
 
-                                    mIVigilateManager.setServerTimeOffset(errorObj.timestamp - now);
+                                    if (errorObj.timestamp > 0) {
+                                        mIVigilateManager.setServerTimeOffset(errorObj.timestamp - now);
+                                    }
 
                                     error = errorObj.data;
 

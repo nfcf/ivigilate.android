@@ -118,6 +118,7 @@ public class IVigilateManager {
     }
 
     public void clearServiceCache() {
+        mSettings.setServerTimeOffset(0);
         mSettings.setServiceInvalidBeacons(null);
         mSettings.setServiceActiveSightings(null);
     }

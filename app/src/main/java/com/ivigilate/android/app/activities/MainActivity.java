@@ -30,7 +30,6 @@ import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
-import com.ivigilate.android.library.classes.DeviceSighting;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
@@ -229,8 +228,8 @@ public class MainActivity extends BaseActivity {
 
                                     long rxTraffic = TrafficStats.getUidRxBytes(Process.myUid()) - rxStartTraffic;
                                     long txTraffic = TrafficStats.getUidTxBytes(Process.myUid()) - txStartTraffic;
-                                    mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic) + "B, " +
-                                                            "Tx: " + Long.toString(txTraffic) + "B");
+                                    mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic / 1000) + "kB, " +
+                                                            "Tx: " + Long.toString(txTraffic / 1000) + "kB");
 
                                     showHideViews();
                                 }

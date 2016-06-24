@@ -47,7 +47,7 @@ public class NdfDeviceSighting implements IDeviceSighting {
 
     @Override
     public String getName() {
-        return mDeviceName == null ? "" : mDeviceName;
+        return mDeviceName;
     }
 
     @Override
