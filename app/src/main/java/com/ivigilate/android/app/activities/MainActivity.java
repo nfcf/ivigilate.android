@@ -47,13 +47,11 @@ public class MainActivity extends BaseActivity {
     private ListView mLvSightings;
     private TextView mTvTrafficStats;
 
-    private Button mBtnStartStop;
+    private Button mBtnClear;
 
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSightingEx> mSightings;
     private HashMap<String, Device> mProvisionedDevices;
-
-    private boolean isScanning;
 
     private DeviceProvisioning.DeviceType mSelectedDeviceType;
     private DeviceProvisioning.IdentifierType mSelectedIdentifierType;
@@ -90,8 +88,6 @@ public class MainActivity extends BaseActivity {
 
         rxStartTraffic = TrafficStats.getUidRxBytes(Process.myUid());
         txStartTraffic = TrafficStats.getUidTxBytes(Process.myUid());
-
-        mBtnStartStop.callOnClick(); // call the onClick when we first come in to this screen...
 
         Logger.d("Finished.");
     }
@@ -191,53 +187,18 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        mBtnStartStop = (Button) findViewById(R.id.btnStartStop);
-
-        mBtnStartStop.setOnClickListener(new OnClickListener() {
+        mBtnClear = (Button) findViewById(R.id.btnClear);
+        mBtnClear.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isScanning) {  // was scanning so stop it (and change label to scan)...
-                    mBtnStartStop.setText("SCAN");
-                    getIVigilateManager().setSightingListener(null);
-                    mSightings.clear();
-                    mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSightingAdapter.notifyDataSetChanged();
-                        }
-                    });
-                } else {  // was stopped so start scanning (and change label to stop)...
-                    mBtnStartStop.setText("STOP");
-                    mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
-
-                    getIVigilateManager().setSightingListener(new ISightingListener() {
-                        @Override
-                        public void onDeviceSighting(final IDeviceSighting deviceSighting) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    DeviceSightingEx sighting = new DeviceSightingEx(deviceSighting);
-                                    String key = sighting.getMac() + "|" + sighting.getUUID();
-
-                                    checkSighting(sighting);
-                                    mSightings.put(key, sighting);
-
-                                    mSightingAdapter.notifyDataSetChanged();
-
-                                    long rxTraffic = TrafficStats.getUidRxBytes(Process.myUid()) - rxStartTraffic;
-                                    long txTraffic = TrafficStats.getUidTxBytes(Process.myUid()) - txStartTraffic;
-                                    mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic / 1000) + "kB, " +
-                                                            "Tx: " + Long.toString(txTraffic / 1000) + "kB");
-
-                                    showHideViews();
-                                }
-                            });
-                        }
-                    });
-                }
-                isScanning = !isScanning;
+                mSightings.clear();
+                mTvEmptySightings.setVisibility(View.VISIBLE);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mSightingAdapter.notifyDataSetChanged();
+                    }
+                });
             }
         });
 
@@ -261,6 +222,33 @@ public class MainActivity extends BaseActivity {
         });
 
         mTvTrafficStats = (TextView) findViewById(R.id.tvTrafficStats);
+
+        getIVigilateManager().setSightingListener(new ISightingListener() {
+            @Override
+            public void onDeviceSighting(final IDeviceSighting deviceSighting) {
+                final long rxTraffic = (TrafficStats.getUidRxBytes(Process.myUid()) - rxStartTraffic) / 1000;
+                final long txTraffic = (TrafficStats.getUidTxBytes(Process.myUid()) - txStartTraffic) / 1000;
+
+                final DeviceSightingEx sighting = new DeviceSightingEx(deviceSighting);
+                checkSighting(sighting);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String key = sighting.getMac() + "|" + sighting.getUUID();
+                        mSightings.put(key, sighting);
+
+                        mSightingAdapter.notifyDataSetChanged();
+
+
+                        mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic) + "kB, " +
+                                                "Tx: " + Long.toString(txTraffic) + "kB");
+
+                        showHideViews();
+                    }
+                });
+            }
+        });
     }
 
     private void checkSighting(DeviceSightingEx deviceSighting) {
@@ -290,7 +278,7 @@ public class MainActivity extends BaseActivity {
 
     private void showHideViews() {
         mIvLogout.setVisibility(View.VISIBLE);
-        mBtnStartStop.setVisibility(View.VISIBLE);
+        mBtnClear.setVisibility(View.VISIBLE);
         mLvSightings.setVisibility(View.VISIBLE);
         mTvEmptySightings.setVisibility(mSightings.isEmpty() ? View.VISIBLE : View.GONE);
     }
