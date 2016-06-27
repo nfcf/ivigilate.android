@@ -1,10 +1,13 @@
 package com.ivigilate.android.library;
 
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.location.Location;
 import android.nfc.NdefRecord;
 import android.nfc.Tag;
@@ -13,6 +16,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.RemoteException;
+import android.support.v7.app.NotificationCompat;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -111,21 +115,20 @@ public class IVigilateService extends Service implements
         buildGoogleApiAndLocationRequest();
 
         mBeaconManager = BeaconManager.getInstanceForApplication(this);
-
-        // These values are only used for devices not running Android 5.0+
-        mBeaconManager.setForegroundScanPeriod(1400);  // default 1100
-        mBeaconManager.setForegroundBetweenScanPeriod(650);  // default 0
-        mBeaconManager.setBackgroundScanPeriod(2800);  //default 10000
-        mBeaconManager.setBackgroundBetweenScanPeriod(1250);  // default 5 * 60 * 1000
-
-        // The following line kind of forces the above periods to work the same on all android versions
-        mBeaconManager.setAndroidLScanningDisabled(true);
-
         mBeaconManager.getBeaconParsers().clear();
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //altBeacon
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //kontakt / jaalee / estimote
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=6572,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25")); //forever
         //mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=ad7700c6,i:4-19,i:20-21,i:22-23,p:24-24")); //gimbal
+
+        // These values are only used for devices not running Android 5.0+
+        mBeaconManager.setForegroundScanPeriod(2050);  // default 1100
+        mBeaconManager.setForegroundBetweenScanPeriod(1050);  // default 0
+        mBeaconManager.setBackgroundScanPeriod(3450);  //default 10000
+        mBeaconManager.setBackgroundBetweenScanPeriod(1650);  // default 5 * 60 * 1000
+
+        // The following line kind of forces the above periods to work the same on all android versions
+        mBeaconManager.setAndroidLScanningDisabled(true);
 
         Logger.i("Finished...");
     }
@@ -133,6 +136,8 @@ public class IVigilateService extends Service implements
     @Override
     public void onDestroy() {
         Logger.d("Started.");
+        super.onDestroy();
+
         mAbortApiThread = true;
 
         Logger.d("Release CPU and Wifi locks...");
@@ -156,8 +161,12 @@ public class IVigilateService extends Service implements
             }
         }
 
-        super.onDestroy();
+        stopForeground(true);
         Logger.i("Finished.");
+
+        // If something killed the service and shouldn't have, try restarting it...
+        if (mIVigilateManager.getServiceEnabled())
+            mIVigilateManager.startService();
     }
 
     protected synchronized void buildGoogleApiAndLocationRequest() {
@@ -249,14 +258,37 @@ public class IVigilateService extends Service implements
         mAbortApiThread = false;
 
         mApiThread = new Thread(new SendSightingsRunnable());
+        mApiThread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable ex) {
+                Logger.e("Ups! Something really wrong happened...");
+            }
+        });
         mApiThread.start();
 
         Logger.d("Binding bluetooth manager...");
         mBeaconManager.bind(this);
 
+        runAsForeground();
 
         Logger.i("Finished. Service is up and running.");
-        return START_NOT_STICKY;
+        return START_STICKY;
+    }
+
+    private void runAsForeground() {
+        Logger.d("Started...");
+        Intent notificationIntent = new Intent(this, NfcActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this)
+                .setSmallIcon(mIVigilateManager.getNotificationIcon())
+                .setColor(mIVigilateManager.getNotificationColor())
+                .setContentTitle(mIVigilateManager.getNotificationTitle())
+                .setContentText(mIVigilateManager.getNotificationMessage())
+                .setContentIntent(pendingIntent).build();
+
+        startForeground(IVigilateManager.FOREGROUND_NOTIFICATION_ID, notification);
+        Logger.i("Finished.");
     }
 
     private void handleNdfSighting(Tag tag, NdefRecord[] records) {
@@ -329,7 +361,8 @@ public class IVigilateService extends Service implements
                         }
 
                     } else {
-                        Logger.d("Averaging packet with previous similar one as it happened less than X second(s) ago.");
+                        Logger.d("Averaging packet with previous similar one as it happened less than %s ms ago.",
+                                mIVigilateManager.getServiceSendInterval());
 
                         previous_item.setRssi((previous_item.getRssi() + rssi) / 2);
                         synchronized (mDequeSightings) {

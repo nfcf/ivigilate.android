@@ -39,6 +39,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class IVigilateManager {
+    protected static final int FOREGROUND_NOTIFICATION_ID = 1;
     private static final long INTERVAL_CHECK_SERVICE_ALIVE = 30 * 1000; // unit: ms
 
     public static final int LOCATION_REQUEST_PRIORITY_HIGH_ACCURACY = 100;
@@ -204,6 +205,39 @@ public class IVigilateManager {
         return mSettings.getLocationRequestPriority();
     }
 
+
+    public void setNotificationIcon(int resId) {
+        mSettings.setNotificationIcon(resId);
+    }
+
+    protected int getNotificationIcon() {
+        return mSettings.getNotificationIcon();
+    }
+
+    public void setNotificationColor(int argb) {
+        mSettings.setNotificationColor(argb);
+    }
+
+    protected int getNotificationColor() {
+        return mSettings.getNotificationColor();
+    }
+
+    public void setNotificationTitle(String value) {
+        mSettings.setNotificationTitle(value);
+    }
+
+    protected String getNotificationTitle() {
+        return mSettings.getNotificationTitle();
+    }
+
+    public void setNotificationMessage(String value) {
+        mSettings.setNotificationMessage(value);
+    }
+
+    protected String getNotificationMessage() {
+        return mSettings.getNotificationMessage();
+    }
+
     public User getUser() {
         return mSettings.getUser();
     }
@@ -225,9 +259,6 @@ public class IVigilateManager {
 
         // Start the service immediately if required
         IVigilateServiceController.startService(mContext);
-
-        // Start AlarmManager to keep service alive every X seconds
-        setKeepServiceAliveAlarm();
     }
 
     public void stopService() {

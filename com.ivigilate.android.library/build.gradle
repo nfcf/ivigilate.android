@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
-def libraryVersion = '0.1.0'
+def libraryVersion = '0.5.0'
 
 android {
     compileSdkVersion 23

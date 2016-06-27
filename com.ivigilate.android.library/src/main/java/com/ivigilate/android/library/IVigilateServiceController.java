@@ -23,21 +23,25 @@ public class IVigilateServiceController extends BroadcastReceiver {
                 !isServiceRunning(context, IVigilateService.class)) {
             Logger.d("Starting IVigilateService...");
 
-            iVigilateManager.setKeepServiceAliveAlarm();  // this restarts the alarmManager if required...
+            // Commented out as this wasn't working when the proccess got killed by android
+            // and so was replaced with a foreground notification...
+            //iVigilateManager.setKeepServiceAliveAlarm();  // this restarts the alarmManager if required...
 
             sIVigilateServiceIntent = new Intent(context, IVigilateService.class);
-            context.bindService(sIVigilateServiceIntent, iVigilateManager.mServiceConn, Context.BIND_AUTO_CREATE);
             context.startService(sIVigilateServiceIntent);
+
+            // http://stackoverflow.com/questions/29114072/broadcastreceiver-components-are-not-allowed-to-bind-to-services-in-android
+            context.getApplicationContext().bindService(sIVigilateServiceIntent, iVigilateManager.mServiceConn, Context.BIND_AUTO_CREATE);
         }
     }
 
     protected static boolean isServiceRunning(Context context, Class<?> serviceClass) {
-        ActivityManager am = (ActivityManager) context
-                .getSystemService(Context.ACTIVITY_SERVICE);
+        String serviceClassName = serviceClass.getName();
+
+        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo serviceInfo : am.getRunningServices(Integer.MAX_VALUE)) {
-            String className1 = serviceInfo.service.getClassName();
-            String className2 = serviceClass.getName();
-            if (className1.equals(className2)) {
+            String className = serviceInfo.service.getClassName();
+            if (className.equals(serviceClassName)) {
                 return true;
             }
         }

@@ -26,6 +26,10 @@ class Settings {
 	private static final int DEFAULT_LOCATION_REQUEST_SMALLEST_DISPLACEMENT = 10;
 	private static final int DEFAULT_LOCATION_REQUEST_PRIORITY = LocationRequest.PRIORITY_LOW_POWER;
 
+	private static final int DEFAULT_NOTIFICATION_ICON = R.drawable.ic_notification;
+	private static final int DEFAULT_NOTIFICATION_COLOR = 0xFF000000; // lazy way to set black as default...
+
+
 	public static final String SETTINGS_SERVER_ADDRESS = "server_address";
 	public static final String SETTINGS_SERVER_TIME_OFFSET = "server_time_offset";
 
@@ -40,13 +44,21 @@ class Settings {
 	public static final String SETTINGS_LOCATION_REQUEST_FASTEST_INTERVAL = "location_request_fastest_interval";
 	public static final String SETTINGS_LOCATION_REQUEST_SMALLEST_DISPLACEMENT = "location_request_smallest_displacement";
 	public static final String SETTINGS_LOCATION_REQUEST_PRIORITY = "location_request_priority";
+
+	public static final String SETTINGS_NOTIFICATION_ICON = "notification_icon";
+	public static final String SETTINGS_NOTIFICATION_COLOR = "notification_color";
+	public static final String SETTINGS_NOTIFICATION_TITLE = "notification_title";
+	public static final String SETTINGS_NOTIFICATION_MESSAGE = "notification_message";
+
 	public static final String SETTINGS_USER = "user";
 
 	public SharedPreferences sharedPreferences;
+    private Context context;
 	private final Gson gson;
 
 	public Settings(Context ctx) {
 		sharedPreferences = ctx.getSharedPreferences(SETTINGS_FILENAME, Context.MODE_PRIVATE);
+        context = ctx;
 		gson = new Gson();
 	}
 
@@ -108,7 +120,8 @@ class Settings {
 
 	public void setServiceSightingMetadata(JsonObject value){ sharedPreferences.edit().putString(SETTINGS_SERVICE_SIGHTING_METADATA, value != null ? value.toString() : "{}").commit(); }
 
-	public int getLocationRequestInterval() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_INTERVAL, DEFAULT_LOCATION_REQUEST_INTERVAL); }
+
+    public int getLocationRequestInterval() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_INTERVAL, DEFAULT_LOCATION_REQUEST_INTERVAL); }
 
 	public void setLocationRequestInterval(int value){ sharedPreferences.edit().putInt(SETTINGS_LOCATION_REQUEST_INTERVAL, value > 0 ? value : DEFAULT_LOCATION_REQUEST_INTERVAL).commit(); }
 
@@ -120,9 +133,26 @@ class Settings {
 
 	public void setLocationRequestSmallestDisplacement(int value){ sharedPreferences.edit().putInt(SETTINGS_LOCATION_REQUEST_SMALLEST_DISPLACEMENT, value > 0 ? value : DEFAULT_LOCATION_REQUEST_SMALLEST_DISPLACEMENT).commit(); }
 
+	public void setLocationRequestPriority(int value){ sharedPreferences.edit().putInt(SETTINGS_LOCATION_REQUEST_PRIORITY, value > 0 ? value : DEFAULT_LOCATION_REQUEST_PRIORITY).commit(); }
+
 	public int getLocationRequestPriority() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_PRIORITY, DEFAULT_LOCATION_REQUEST_PRIORITY); }
 
-	public void setLocationRequestPriority(int value){ sharedPreferences.edit().putInt(SETTINGS_LOCATION_REQUEST_PRIORITY, value > 0 ? value : DEFAULT_LOCATION_REQUEST_PRIORITY).commit(); }
+
+    public void setNotificationIcon(int resId){ sharedPreferences.edit().putInt(SETTINGS_NOTIFICATION_ICON, resId > 0 ? resId : DEFAULT_NOTIFICATION_ICON).commit(); }
+
+    public int getNotificationIcon() { return sharedPreferences.getInt(SETTINGS_NOTIFICATION_ICON, DEFAULT_NOTIFICATION_ICON); }
+
+    public void setNotificationColor(int argb){ sharedPreferences.edit().putInt(SETTINGS_NOTIFICATION_COLOR, argb > 0 ? argb : DEFAULT_NOTIFICATION_COLOR).commit(); }
+
+    public int getNotificationColor() { return sharedPreferences.getInt(SETTINGS_NOTIFICATION_COLOR, DEFAULT_NOTIFICATION_COLOR); }
+
+    public void setNotificationTitle(String value){ sharedPreferences.edit().putString(SETTINGS_NOTIFICATION_TITLE, value != null ? value : context.getString(R.string.notification_title)).commit(); }
+
+    public String getNotificationTitle() { return sharedPreferences.getString(SETTINGS_NOTIFICATION_TITLE, context.getString(R.string.notification_title)); }
+
+    public void setNotificationMessage(String value){ sharedPreferences.edit().putString(SETTINGS_NOTIFICATION_MESSAGE, value != null ? value : context.getString(R.string.notification_message)).commit(); }
+
+    public String getNotificationMessage() { return sharedPreferences.getString(SETTINGS_NOTIFICATION_MESSAGE, context.getString(R.string.notification_message)); }
 
 	public User getUser() {
 		String userString = sharedPreferences.getString(SETTINGS_USER, null);

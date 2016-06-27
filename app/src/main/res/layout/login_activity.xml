@@ -18,7 +18,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="16dp"
             android:layout_marginTop="16dp"
-            android:src="@drawable/logo_white" />
+            android:src="@drawable/ic_notification" />
     </RelativeLayout>
 
     <!-- Login progress -->

@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">iVigilate Core</string>
+    <string name="notification_title">iVigilate</string>
+    <string name="notification_message">Service is running...</string>
 
     <string name="error_network">Network error</string>
     <string name="error_no_response">No response from server</string>
