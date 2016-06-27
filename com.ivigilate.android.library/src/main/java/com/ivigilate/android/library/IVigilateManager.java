@@ -114,7 +114,7 @@ public class IVigilateManager {
         mSettings.setServerTimeOffset(offset);
     }
 
-    protected boolean getServiceEnabled() {
+    public boolean getServiceEnabled() {
         return mSettings.getServiceEnabled();
     }
 
@@ -148,7 +148,7 @@ public class IVigilateManager {
         mSettings.setServiceSendInterval(interval);
     }
 
-    protected int getServiceSightingStateChangeInterval() {
+    public int getServiceSightingStateChangeInterval() {
         return mSettings.getServiceSightingStateChangeInterval();
     }
 

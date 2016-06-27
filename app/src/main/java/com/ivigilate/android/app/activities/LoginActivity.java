@@ -22,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -131,6 +132,19 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                                                      gotoMainActivity();
                                                  }
                                              });
+
+        final CheckBox cbStateChangeOnly = (CheckBox) findViewById(R.id.cbStateChangeOnly);
+        cbStateChangeOnly.setChecked(getIVigilateManager().getServiceSightingStateChangeInterval() > 0);
+        cbStateChangeOnly.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cbStateChangeOnly.isChecked()) {
+                    getIVigilateManager().setServiceSightingStateChangeInterval(20 * 1000);
+                } else {
+                    getIVigilateManager().setServiceSightingStateChangeInterval(0);
+                }
+            }
+        });
     }
 
     private void gotoMainActivity() {

@@ -50,7 +50,11 @@ public class BaseActivity extends Activity {
         if (nfcAdapter == null) {
             Toast.makeText(this, "NFC not supported on this device", Toast.LENGTH_SHORT).show();
         } else if (!nfcAdapter.isEnabled()) {
-            Toast.makeText(this, "Please enable NFC in Settings", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enable NFC in Settings.", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(android.provider.Settings.ACTION_WIRELESS_SETTINGS);
+            startActivity(intent);
+            return;
         }
     }
 

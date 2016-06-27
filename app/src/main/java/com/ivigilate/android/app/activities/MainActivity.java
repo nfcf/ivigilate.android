@@ -180,7 +180,9 @@ public class MainActivity extends BaseActivity {
             public void onClick(View view) {
                 Logger.d("Logging out...");
                 getIVigilateManager().stopService();
-                getIVigilateManager().logout(null);
+                if (getIVigilateManager().getUser() != null) {
+                    getIVigilateManager().logout(null);
+                }
                 Intent i = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(i);
                 finish();

@@ -2,12 +2,14 @@ package com.ivigilate.android.library.utils;
 
 import android.util.Log;
 
+import com.ivigilate.android.library.BuildConfig;
+
 public class Logger {
     static String className;
     static String methodName;
     static int lineNumber;
 
-    static boolean isDebugMode = true;
+    static boolean isDebugMode = BuildConfig.DEBUG;
 
     private Logger(){
         /* Protect from instantiations */
