@@ -46,14 +46,14 @@ public class DeviceProvisioning {
 
     public DeviceProvisioning(DeviceType type, String uid, String name, boolean isActive) {
         this.type = type;
-        this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
+        this.uid = uid != null ? uid.toLowerCase().replace(":", "").replace("-", "") : "";
         this.name = name;
         this.is_active = isActive;
     }
 
     public DeviceProvisioning(DeviceType type, String uid, String name, boolean isActive, JsonObject metadata) {
         this.type = type;
-        this.uid = uid.toLowerCase().replace(":", "").replace("-", "");
+        this.uid = uid != null ? uid.toLowerCase().replace(":", "").replace("-", "") : "";
         this.name = name;
         this.is_active = isActive;
 

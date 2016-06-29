@@ -3,6 +3,7 @@ package com.ivigilate.android.app.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.Image;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Bundle;
@@ -12,8 +13,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -28,6 +29,7 @@ import com.ivigilate.android.app.classes.DeviceSightingEx;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
+import com.ivigilate.android.library.IVigilateService;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
@@ -47,7 +49,11 @@ public class MainActivity extends BaseActivity {
     private ListView mLvSightings;
     private TextView mTvTrafficStats;
 
-    private Button mBtnClear;
+    private ImageButton mBtnClear;
+
+    //barcode scanning
+    private ImageButton mBtnScan;
+    private TextView formatTxt, contentTxt;
 
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSightingEx> mSightings;
@@ -108,12 +114,12 @@ public class MainActivity extends BaseActivity {
         return ((AppContext) getApplicationContext()).getIVigilateManager();
     }
 
-    private void downloadBeacons(){
+    private void downloadBeacons() {
         getIVigilateManager().getBeacons(new IVigilateApiCallback<List<Device>>() {
             @Override
             public void success(List<Device> devices) {
-                for(Device device : devices){
-                    switch(device.getType()) {
+                for (Device device : devices) {
+                    switch (device.getType()) {
                         case "M":
                             device.setDeviceType(DeviceProvisioning.DeviceType.BeaconMovable);
                             break;
@@ -134,12 +140,12 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    private void downloadDetectors(){
+    private void downloadDetectors() {
         getIVigilateManager().getDetectors(new IVigilateApiCallback<List<Device>>() {
             @Override
             public void success(List<Device> devices) {
-                for(Device device : devices) {
-                    switch(device.getType()) {
+                for (Device device : devices) {
+                    switch (device.getType()) {
                         case "U":
                             device.setDeviceType(DeviceProvisioning.DeviceType.DetectorUser);
                             break;
@@ -187,7 +193,7 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        mBtnClear = (Button) findViewById(R.id.btnClear);
+        mBtnClear = (ImageButton) findViewById(R.id.btnClear);
         mBtnClear.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -201,6 +207,19 @@ public class MainActivity extends BaseActivity {
                 });
             }
         });
+
+        //barcode or QR code scanning
+        mBtnScan = (ImageButton) findViewById(R.id.btnScan);
+        mBtnScan.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                //set generic mode to scan all types of barcodes
+                intent.putExtra("SCAN_MODE","");
+                startActivityForResult(intent, 1);
+            }
+        });
+
 
         mTvEmptySightings = (TextView) findViewById(R.id.tvEmptySightings);
         mSightingAdapter = new SightingAdapter(mSightings);
@@ -242,7 +261,7 @@ public class MainActivity extends BaseActivity {
 
 
                         mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic) + "kB, " +
-                                                "Tx: " + Long.toString(txTraffic) + "kB");
+                                "Tx: " + Long.toString(txTraffic) + "kB");
 
                         showHideViews();
                     }
@@ -251,11 +270,31 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    //Handle scanned barcodes or QR codes
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                String scanContent = intent.getStringExtra("SCAN_RESULT");
+                String scanFormat = intent.getStringExtra("SCAN_RESULT_FORMAT");
+                getIVigilateManager().scanSighted(scanContent, scanFormat);
+            } else if (requestCode == RESULT_CANCELED) {
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "Scan was cancelled!", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        } else {
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    "No scan data received!", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+    }
+
     private void checkSighting(DeviceSightingEx deviceSighting) {
         String uuid = deviceSighting.getUUID();
         String mac = deviceSighting.getMac();
 
-        if(mProvisionedDevices.containsKey(mac)){  // MAC takes precedence
+        if (mProvisionedDevices.containsKey(mac)) {  // MAC takes precedence
             Device provisionedDevice = mProvisionedDevices.get(mac);
 
             deviceSighting.setDeviceProvisioned(true);
@@ -264,7 +303,7 @@ public class MainActivity extends BaseActivity {
             deviceSighting.setDeviceType(provisionedDevice.getDeviceType());
             deviceSighting.setTypeIconId(getIconByType(provisionedDevice.getDeviceType()));
             deviceSighting.setIdentifierType(DeviceProvisioning.IdentifierType.MAC);
-        } else if(mProvisionedDevices.containsKey(uuid)){
+        } else if (mProvisionedDevices.containsKey(uuid)) {
             Device provisionedDevice = mProvisionedDevices.get(uuid);
 
             deviceSighting.setDeviceProvisioned(true);
@@ -361,7 +400,7 @@ public class MainActivity extends BaseActivity {
         mSwitchIsActive = (Switch) dialogView.findViewById(R.id.switchIsActive);
         mSwitchIsActive.setChecked(mCurrentDeviceSighting.isDeviceActive());
 
-        if(mCurrentDeviceSighting.isDeviceProvisioned()) {
+        if (mCurrentDeviceSighting.isDeviceProvisioned()) {
             spType.setSelection(DeviceProvisioning.DeviceType.valueOf(mCurrentDeviceSighting.getDeviceType().name()).ordinal());
             spIdentifierType.setSelection(DeviceProvisioning.IdentifierType.valueOf(mCurrentDeviceSighting.getIdentifierType().name()).ordinal());
 
@@ -456,7 +495,7 @@ public class MainActivity extends BaseActivity {
 
     private int getIconByType(DeviceProvisioning.DeviceType deviceType) {
         int typeIconId = R.drawable.bf_icon;
-        switch(deviceType){
+        switch (deviceType) {
             case BeaconMovable:
                 typeIconId = R.drawable.bm_icon;
                 break;

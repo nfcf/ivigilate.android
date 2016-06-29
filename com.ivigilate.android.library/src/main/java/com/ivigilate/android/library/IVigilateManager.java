@@ -67,7 +67,7 @@ public class IVigilateManager {
     protected ServiceConnection mServiceConn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
-            iVigilateService =  ((IVigilateService.Binder) binder).getService();
+            iVigilateService = ((IVigilateService.Binder) binder).getService();
             //Log.d(LOG_TAG, "onServiceConnected");
         }
 
@@ -159,6 +159,7 @@ public class IVigilateManager {
      * close sightings not seen for more than X seconds.
      * ManualClosing - Only an open sighting and close sighting events are sent to the server
      * respecting the interval value set.
+     *
      * @param intervalInMilliSeconds the interval in ms for 'ManualClosing' or 0 (zero) for 'AutoClosing'
      */
     public void setServiceSightingStateChangeInterval(int intervalInMilliSeconds) {
@@ -507,5 +508,10 @@ public class IVigilateManager {
         }
     }
 
-
+    //Barcode or QR Code sightings
+    public void scanSighted(String scanContent, String scanFormat) {
+        if (iVigilateService != null) {
+            iVigilateService.scanSighted(scanContent, scanFormat);
+        }
+    }
 }

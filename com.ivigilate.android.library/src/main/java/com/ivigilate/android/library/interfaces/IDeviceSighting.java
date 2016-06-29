@@ -7,7 +7,7 @@ public interface IDeviceSighting {
 
     public String getMac();
 
-    public void setDeviceName(String mDeviceName);
+    public void setDeviceName(String deviceName);
 
     public String getName();
 

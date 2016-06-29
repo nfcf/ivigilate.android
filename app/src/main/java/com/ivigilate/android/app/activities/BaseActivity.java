@@ -47,9 +47,7 @@ public class BaseActivity extends Activity {
 
         //Verify if NFC is supported and enabled
         NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        if (nfcAdapter == null) {
-            Toast.makeText(this, "NFC not supported on this device", Toast.LENGTH_SHORT).show();
-        } else if (!nfcAdapter.isEnabled()) {
+        if (nfcAdapter != null && !nfcAdapter.isEnabled()) {
             Toast.makeText(this, "Please enable NFC in Settings", Toast.LENGTH_SHORT).show();
         }
     }

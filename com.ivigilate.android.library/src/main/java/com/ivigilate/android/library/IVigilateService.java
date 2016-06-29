@@ -32,6 +32,7 @@ import com.ivigilate.android.library.classes.BleDeviceSighting;
 import com.ivigilate.android.library.classes.GPSLocation;
 import com.ivigilate.android.library.classes.NdfDeviceSighting;
 import com.ivigilate.android.library.classes.Rest;
+import com.ivigilate.android.library.classes.ScanSighting;
 import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.IVigilateApi;
@@ -243,6 +244,10 @@ public class IVigilateService extends Service implements
         handleNdfSighting(tag, records);
     }
 
+    public void scanSighted(String scanContent, String scanFormat){
+        handleScanSighting(scanContent,scanFormat);
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Logger.d("Started...");
@@ -297,6 +302,11 @@ public class IVigilateService extends Service implements
 
     private void handleBleSighting(Parcelable device, int rssi, byte[] bytes) {
         handleSighting(new BleDeviceSighting((BluetoothDevice) device, rssi, bytes), rssi);
+    }
+
+    //handles barcode or QR Code sightings
+    private void handleScanSighting(String scanContent, String scanFormat){
+        handleSighting(new ScanSighting(scanContent, scanFormat),0);
     }
 
     private void handleSighting(IDeviceSighting deviceSighting, int rssi) {

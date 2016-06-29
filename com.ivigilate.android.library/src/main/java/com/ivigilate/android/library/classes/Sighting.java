@@ -36,8 +36,8 @@ public class Sighting {
         this.type = type;
         this.detector_uid = detector_uid;
         this.detector_battery = detector_battery;
-        this.beacon_mac = beacon_mac.toLowerCase().replace(":", "");
-        this.beacon_uid = beacon_uid.toLowerCase().replace("-", "");
+        this.beacon_mac = beacon_mac != null ? beacon_mac.toLowerCase().replace(":", "") : "";
+        this.beacon_uid = beacon_uid != null ? beacon_uid.toLowerCase().replace("-", "") : "";
         this.beacon_battery = beacon_battery;
         this.rssi = rssi;
         this.location = location;
