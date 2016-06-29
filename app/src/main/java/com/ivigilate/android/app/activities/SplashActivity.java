@@ -8,6 +8,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 import com.ivigilate.android.app.R;
+import com.ivigilate.android.library.IVigilateManager;
 
 public class SplashActivity extends Activity {
     private final int SPLASH_TIME = 1500;
@@ -19,12 +20,18 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity);
 
-        new Handler().postDelayed(new Runnable() {
+        final IVigilateManager iVigilateManager = IVigilateManager.getInstance(this);
 
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent i = new Intent(SplashActivity.this, LoginActivity.class);
-                startActivity(i);
+                if (iVigilateManager.getServiceEnabled()) {
+                    Intent i = new Intent(SplashActivity.this, MainActivity.class);
+                    startActivity(i);
+                } else {
+                    Intent i = new Intent(SplashActivity.this, LoginActivity.class);
+                    startActivity(i);
+                }
                 finish();
             }
         }, SPLASH_TIME);

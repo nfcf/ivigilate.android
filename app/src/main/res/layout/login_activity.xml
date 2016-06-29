@@ -18,7 +18,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="16dp"
             android:layout_marginTop="16dp"
-            android:src="@drawable/ic_notification" />
+            android:src="@drawable/logo_white" />
     </RelativeLayout>
 
     <!-- Login progress -->
@@ -109,7 +109,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:gravity="center_horizontal"
                 android:text="OR"
                 android:textColor="@color/white"
@@ -136,10 +136,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="@color/white"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginEnd="32dp"/>
+                    android:layout_marginStart="28dp"
+                    android:layout_marginEnd="28dp"
+                    android:layout_marginBottom="16dp"/>
 
             </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/cbStateChangeOnly"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="28dp"
+                android:layout_marginEnd="28dp"
+                android:text="Send only state changes?"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:theme="@android:style/Theme.Holo"
+                android:gravity="center"/>
 
         </LinearLayout>
     </ScrollView>

@@ -124,9 +124,9 @@ public class IVigilateService extends Service implements
 
         // These values are only used for devices not running Android 5.0+
         mBeaconManager.setForegroundScanPeriod(2050);  // default 1100
-        mBeaconManager.setForegroundBetweenScanPeriod(1050);  // default 0
-        mBeaconManager.setBackgroundScanPeriod(3450);  //default 10000
-        mBeaconManager.setBackgroundBetweenScanPeriod(1650);  // default 5 * 60 * 1000
+        mBeaconManager.setForegroundBetweenScanPeriod(550);  // default 0
+        mBeaconManager.setBackgroundScanPeriod(3550);  //default 10000
+        mBeaconManager.setBackgroundBetweenScanPeriod(1050);  // default 5 * 60 * 1000
 
         // The following line kind of forces the above periods to work the same on all android versions
         mBeaconManager.setAndroidLScanningDisabled(true);
@@ -328,7 +328,7 @@ public class IVigilateService extends Service implements
                             (deviceSighting.getUUID().equalsIgnoreCase(previous_item.getBeaconUid()) &&
                                     (now - previous_item.getTimestamp()) >= mIVigilateManager.getServiceSendInterval())) {
 
-                        Logger.i("Beacon sighted: '%s','%s',%s,%s",
+                        Logger.d("Beacon sighted: '%s','%s',%s,%s",
                                 deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi);
 
                         Sighting.Type type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
@@ -435,10 +435,12 @@ public class IVigilateService extends Service implements
 
                     // If after the above, there are sightings in the list to be sent, send them!
                     if (sightings.size() > 0) {
+                        Logger.d("Sending a total of " + sightings.size() + " sighting(s)...");
                         mApi.addSightings(sightings, new Callback<ApiResponse<AddSightingResponse>>() {
                             @Override
                             public void success(ApiResponse<AddSightingResponse> result, Response response) {
-                                Logger.i("SendSightingsThread sent " + sightings.size() + " 'successfully'.");
+                                Logger.i("SendSightingsRunnable sent " + sightings.size() + " sighting(s) 'successfully'.");
+
                                 final Long now = System.currentTimeMillis();
                                 if (result.timestamp > 0) {
                                     mIVigilateManager.setServerTimeOffset(result.timestamp - now);
@@ -456,24 +458,24 @@ public class IVigilateService extends Service implements
                                 }
 
                                 // The server may return a list of invalid or ignored beacons (due to a variety of reasons)...
-                                if (response.getStatus() == HttpURLConnection.HTTP_PARTIAL) {
-                                    if (result.data != null) {
-                                        if (result.data.ignored_beacons.size() > 0) {
-                                            synchronized(mActiveSightings) {
-                                                for (String ignoredBeaconKey : result.data.ignored_beacons) {
-                                                    // Mark it as needing to be sent again...Only used in ManualClosing
-                                                    mActiveSightings.remove(ignoredBeaconKey);
-                                                }
+                                if (response.getStatus() == HttpURLConnection.HTTP_PARTIAL &&
+                                        result.data != null) {
+                                    Logger.i("SendSightingsRunnable server marked " + result.data.ignored_beacons.size() + " sighting(s) to be ignored and " + result.data.invalid_beacons + " sighting(s) as invalid.");
+                                    if (result.data.ignored_beacons.size() > 0) {
+                                        synchronized(mActiveSightings) {
+                                            for (String ignoredBeaconKey : result.data.ignored_beacons) {
+                                                // Mark it as needing to be sent again...Only used in ManualClosing
+                                                mActiveSightings.remove(ignoredBeaconKey);
                                             }
                                         }
-                                        if (result.data.invalid_beacons.size() > 0) {
-                                            synchronized (mInvalidBeacons) {
-                                                for (String ignoreSightingKey : result.data.invalid_beacons) {
-                                                    // Mark it as invalid to be ignored...
-                                                    mInvalidBeacons.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
-                                                }
-                                                mIVigilateManager.setServiceInvalidBeacons(mInvalidBeacons);
+                                    }
+                                    if (result.data.invalid_beacons.size() > 0) {
+                                        synchronized (mInvalidBeacons) {
+                                            for (String ignoreSightingKey : result.data.invalid_beacons) {
+                                                // Mark it as invalid to be ignored...
+                                                mInvalidBeacons.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
                                             }
+                                            mIVigilateManager.setServiceInvalidBeacons(mInvalidBeacons);
                                         }
                                     }
                                 }
@@ -501,7 +503,7 @@ public class IVigilateService extends Service implements
                                     // Do nothing...it was a unknown server error
                                 }
 
-                                Logger.e("SendSightingsThread failed to send Sighting(s): " + error);
+                                Logger.e("SendSightingsRunnable failed to send Sighting(s): " + error);
                             }
                         });
                     }
@@ -511,7 +513,7 @@ public class IVigilateService extends Service implements
                     }
                 }
             } catch (Exception ex) {
-                Logger.e("SendSightingsThread failed with exception: " + ex.getMessage());
+                Logger.e("Failed with exception: " + ex.getMessage());
             }
         }
     }

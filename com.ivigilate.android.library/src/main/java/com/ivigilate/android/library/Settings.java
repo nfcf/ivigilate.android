@@ -138,11 +138,11 @@ class Settings {
 	public int getLocationRequestPriority() { return sharedPreferences.getInt(SETTINGS_LOCATION_REQUEST_PRIORITY, DEFAULT_LOCATION_REQUEST_PRIORITY); }
 
 
-    public void setNotificationIcon(int resId){ sharedPreferences.edit().putInt(SETTINGS_NOTIFICATION_ICON, resId > 0 ? resId : DEFAULT_NOTIFICATION_ICON).commit(); }
+    public void setNotificationIcon(int resId){ sharedPreferences.edit().putInt(SETTINGS_NOTIFICATION_ICON, resId != 0 ? resId : DEFAULT_NOTIFICATION_ICON).commit(); }
 
     public int getNotificationIcon() { return sharedPreferences.getInt(SETTINGS_NOTIFICATION_ICON, DEFAULT_NOTIFICATION_ICON); }
 
-    public void setNotificationColor(int argb){ sharedPreferences.edit().putInt(SETTINGS_NOTIFICATION_COLOR, argb > 0 ? argb : DEFAULT_NOTIFICATION_COLOR).commit(); }
+    public void setNotificationColor(int argb){ sharedPreferences.edit().putInt(SETTINGS_NOTIFICATION_COLOR, argb != 0 ? argb : DEFAULT_NOTIFICATION_COLOR).commit(); }
 
     public int getNotificationColor() { return sharedPreferences.getInt(SETTINGS_NOTIFICATION_COLOR, DEFAULT_NOTIFICATION_COLOR); }
 
