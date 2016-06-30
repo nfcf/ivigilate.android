@@ -5,6 +5,7 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -20,12 +21,22 @@ import android.os.Build;
 import android.provider.Settings;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.ivigilate.android.app.AppContext;
 import com.ivigilate.android.app.utils.Logger;
+import com.ivigilate.android.library.IVigilateManager;
 
 public class BaseActivity extends Activity {
     private static final int PERMISSIONS_REQUEST = 1;
+    private static final int REQUEST_CODE = 1;
 
     protected void checkRequiredEnabledFeatures() {
+        //Verify if Google API needs to be updated
+        int errorCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext());
+        GoogleApiAvailability.getInstance().showErrorDialogFragment(this, errorCode, REQUEST_CODE);
+
         // Verify if location services are enabled
         LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (!service.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -50,6 +61,8 @@ public class BaseActivity extends Activity {
         if (nfcAdapter != null && !nfcAdapter.isEnabled()) {
             Toast.makeText(this, "Please enable NFC in Settings", Toast.LENGTH_SHORT).show();
         }
+
+
     }
 
     @TargetApi(Build.VERSION_CODES.M)

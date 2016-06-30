@@ -7,7 +7,6 @@ import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.location.Location;
 import android.nfc.NdefRecord;
 import android.nfc.Tag;
@@ -90,7 +89,6 @@ public class IVigilateService extends Service implements
     private HashMap<String, Sighting> mActiveSightings;
 
     private final IBinder iVigilateServiceBinder = new Binder();
-
 
     public IVigilateService() {
     }
@@ -211,6 +209,9 @@ public class IVigilateService extends Service implements
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
+        Toast toast = Toast.makeText(getApplicationContext(),
+                "Google Play Services need to be updated to continue!", Toast.LENGTH_SHORT);
+        toast.show();
         Logger.e("Failed with error code: " + result.getErrorCode());
     }
 
