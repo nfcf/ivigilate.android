@@ -5,13 +5,5 @@
 .DS_Store
 /build
 /captures
-
-app/app.iml
-
-com.ivigilate.android.library/com.ivigilate.android.library.iml
-com.ivigilate.android.library/com.ivigilate.android.library.iml.orig
-com.ivigilate.android.library/com.ivigilate.android.library.iml
-com.ivigilate.android.library/com.ivigilate.android.library.iml
-com.ivigilate.android.library/com.ivigilate.android.library.iml
+*.iml
 .idea/misc.xml
-app/app.iml
