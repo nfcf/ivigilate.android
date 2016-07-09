@@ -26,7 +26,7 @@ import retrofit.client.OkClient;
 public class Rest {
     static final String IVIGILATE_DEV_HOSTNAME = "dev.ivigilate.com";
     static final String IVIGILATE_PRD_HOSTNAME = "portal.ivigilate.com";
-    static final int TIMEOUT_IN_SECONDS = 15;
+    static final int TIMEOUT_IN_SECONDS = 8;
 
     public static <T> T createService(Class<T> serviceClass, Context context, final String serverAddress) {
         return createService(serviceClass, context, serverAddress, "");

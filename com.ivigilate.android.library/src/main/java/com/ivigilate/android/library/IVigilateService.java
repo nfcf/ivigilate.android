@@ -155,7 +155,7 @@ public class IVigilateService extends Service implements
         if (mApiThread != null) {
             mApiThread.interrupt();
             try {
-                mApiThread.join(15 * 1000);
+                mApiThread.join(10 * 1000);
             } catch (Exception ex) {
             }
         }
