@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.ivigilate.android.app.AppContext;
 import com.ivigilate.android.app.BuildConfig;
@@ -133,7 +134,20 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                                                  }
                                              });
 
-        final CheckBox cbStateChangeOnly = (CheckBox) findViewById(R.id.cbStateChangeOnly);
+        final ToggleButton toggBtn = (ToggleButton) findViewById(R.id.toggBtnStateChangeOnly);
+        toggBtn.setChecked(getIVigilateManager().getServiceSightingStateChangeInterval() > 0);
+
+        toggBtn.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(toggBtn.isChecked()){
+                    getIVigilateManager().setServiceSightingStateChangeInterval(20 * 1000);
+                }else{
+                    getIVigilateManager().setServiceSightingStateChangeInterval(0);
+                }
+            }
+        });
+        /*final CheckBox cbStateChangeOnly = (CheckBox) findViewById(R.id.tvStateChangeOnly);
         cbStateChangeOnly.setChecked(getIVigilateManager().getServiceSightingStateChangeInterval() > 0);
         cbStateChangeOnly.setOnClickListener(new OnClickListener() {
             @Override
@@ -144,7 +158,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                     getIVigilateManager().setServiceSightingStateChangeInterval(0);
                 }
             }
-        });
+        });*/
     }
 
     private void gotoMainActivity() {

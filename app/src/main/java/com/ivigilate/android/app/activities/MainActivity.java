@@ -1,6 +1,7 @@
 package com.ivigilate.android.app.activities;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.Image;
@@ -30,6 +31,7 @@ import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
 import com.ivigilate.android.library.IVigilateService;
+import com.ivigilate.android.library.classes.BleDeviceSighting;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
@@ -37,6 +39,7 @@ import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
 import com.ivigilate.android.library.utils.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -58,6 +61,7 @@ public class MainActivity extends BaseActivity {
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSightingEx> mSightings;
     private HashMap<String, Device> mProvisionedDevices;
+    private List<String> mStatusChanges;
 
     private DeviceProvisioning.DeviceType mSelectedDeviceType;
     private DeviceProvisioning.IdentifierType mSelectedIdentifierType;
@@ -80,6 +84,8 @@ public class MainActivity extends BaseActivity {
         mSightings = new LinkedHashMap<String, DeviceSightingEx>();
 
         mProvisionedDevices = new HashMap<String, Device>();
+
+        mStatusChanges = new ArrayList<String>();
 
         if (getIVigilateManager().getUser() != null) {
             downloadBeacons();
@@ -217,7 +223,7 @@ public class MainActivity extends BaseActivity {
             public void onClick(View v) {
                 Intent intent = new Intent("com.google.zxing.client.android.SCAN");
                 //set generic mode to scan all types of barcodes
-                intent.putExtra("SCAN_MODE","");
+                intent.putExtra("SCAN_MODE", "");
                 startActivityForResult(intent, 1);
             }
         });
@@ -252,6 +258,25 @@ public class MainActivity extends BaseActivity {
 
                 final DeviceSightingEx sighting = new DeviceSightingEx(deviceSighting);
                 checkSighting(sighting);
+
+
+
+
+                if (!deviceSighting.getStatus().equals("N")) {
+                    synchronized (mStatusChanges) {
+                        if (mStatusChanges.isEmpty() || !mStatusChanges.contains(deviceSighting.getMac())) {
+                            mStatusChanges.add(deviceSighting.getMac());
+                            String status = deviceSighting.getStatus().equals("P") ? "PANIC: " : "FALL DETECTED: ";
+                            runToastOnUIThread(status + deviceSighting.getMac(), true);
+                        }
+                    }
+                }else{
+                    synchronized (mStatusChanges){
+                        if(!mStatusChanges.isEmpty() && mStatusChanges.contains(deviceSighting.getMac())){
+                            mStatusChanges.remove(deviceSighting.getMac());
+                        }
+                    }
+                }
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -427,6 +452,7 @@ public class MainActivity extends BaseActivity {
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
         device.addProperty("manufacturer", mCurrentDeviceSighting.getManufacturer());
+        device.addProperty("status", mCurrentDeviceSighting.getStatus());
         metadata.add("device", device);
 
         String uid = "";

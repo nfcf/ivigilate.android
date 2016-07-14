@@ -137,4 +137,9 @@ public class Sighting {
     public void setActive(boolean isActive) {
         this.is_active = isActive;
     }
+
+    @Override
+    public boolean equals(Object sighting){
+        return this.getKey().equals(((Sighting)sighting).getKey());
+    }
 }

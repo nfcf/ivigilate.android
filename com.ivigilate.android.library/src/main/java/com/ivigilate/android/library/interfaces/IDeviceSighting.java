@@ -26,4 +26,6 @@ public interface IDeviceSighting {
     public int getBattery();
 
     public String getType();
+
+    public String getStatus();
 }
