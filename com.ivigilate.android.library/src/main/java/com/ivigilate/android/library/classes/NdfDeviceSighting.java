@@ -100,4 +100,9 @@ public class NdfDeviceSighting implements IDeviceSighting {
          int i = tech.lastIndexOf(".");
          return getTechList()[0].substring(i + 1, tech.length());
     }
+
+    @Override
+    public String getStatus() {
+        return "N";
+    }
 }

@@ -74,4 +74,9 @@ public class ScanSighting implements IDeviceSighting{
     public String getType() {
         return mScanFormat;
     }
+
+    @Override
+    public String getStatus() {
+        return "N";
+    }
 }

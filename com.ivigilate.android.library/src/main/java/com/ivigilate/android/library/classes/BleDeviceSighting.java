@@ -2,6 +2,7 @@ package com.ivigilate.android.library.classes;
 
 import android.bluetooth.BluetoothDevice;
 
+import com.google.android.gms.cast.internal.DeviceStatus;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.utils.BleAdvUtils;
 import com.ivigilate.android.library.utils.StringUtils;
@@ -117,5 +118,22 @@ public class BleDeviceSighting implements IDeviceSighting {
         } else {
             return 0;
         }
+    }
+
+    public String getStatus(){
+        String mode = getData().substring(getData().length()-4, getData().length());
+        String status;
+        switch (mode){
+            case "FFFF":
+                status = "P";
+                break;
+            case "AAAA":
+                status = "F";
+                break;
+            default:
+                status = "N";
+                break;
+        }
+        return status ;
     }
 }

@@ -68,4 +68,8 @@ public abstract class BaseDeviceSightingEx implements IDeviceSighting{
     public String getType() {
         return mDeviceSighting.getType();
     }
+
+    public String getStatus(){
+        return mDeviceSighting.getStatus();
+    }
 }
