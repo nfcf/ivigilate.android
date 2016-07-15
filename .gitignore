@@ -10,6 +10,4 @@
 
 .idea/gradle.xml
 app/app.iml
-app/build.gradle
-app/app.iml
 com.ivigilate.android.library/com.ivigilate.android.library.iml

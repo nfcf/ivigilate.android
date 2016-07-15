@@ -147,18 +147,6 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 }
             }
         });
-        /*final CheckBox cbStateChangeOnly = (CheckBox) findViewById(R.id.tvStateChangeOnly);
-        cbStateChangeOnly.setChecked(getIVigilateManager().getServiceSightingStateChangeInterval() > 0);
-        cbStateChangeOnly.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (cbStateChangeOnly.isChecked()) {
-                    getIVigilateManager().setServiceSightingStateChangeInterval(20 * 1000);
-                } else {
-                    getIVigilateManager().setServiceSightingStateChangeInterval(0);
-                }
-            }
-        });*/
     }
 
     private void gotoMainActivity() {
