@@ -70,7 +70,7 @@ public class IVigilateService extends Service implements
     }
 
     private static String REGION_ID = "com.ivigilate.android.region";
-    private static final Long IGNORE_INTERVAL = 60 * 60 * 1000L;
+    private static final Long IGNORE_INTERVAL = 12 * 60 * 60 * 1000L;
 
     private GoogleApiClient mGoogleApiClient;
     protected LocationRequest mLocationRequest;
@@ -156,7 +156,7 @@ public class IVigilateService extends Service implements
         if (mApiThread != null) {
             mApiThread.interrupt();
             try {
-                mApiThread.join(15 * 1000);
+                mApiThread.join(10 * 1000);
             } catch (Exception ex) {
             }
         }

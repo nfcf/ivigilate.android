@@ -276,6 +276,25 @@ public class MainActivity extends BaseActivity {
                     }
                 }
 
+
+
+
+                if (!deviceSighting.getStatus().equals("N")) {
+                    synchronized (mStatusChanges) {
+                        if (mStatusChanges.isEmpty() || !mStatusChanges.contains(deviceSighting.getMac())) {
+                            mStatusChanges.add(deviceSighting.getMac());
+                            String status = deviceSighting.getStatus().equals("P") ? "PANIC: " : "FALL DETECTED: ";
+                            runToastOnUIThread(status + deviceSighting.getMac(), true);
+                        }
+                    }
+                }else{
+                    synchronized (mStatusChanges){
+                        if(!mStatusChanges.isEmpty() && mStatusChanges.contains(deviceSighting.getMac())){
+                            mStatusChanges.remove(deviceSighting.getMac());
+                        }
+                    }
+                }
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -450,6 +469,7 @@ public class MainActivity extends BaseActivity {
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
         device.addProperty("manufacturer", mCurrentDeviceSighting.getManufacturer());
+        device.addProperty("status", mCurrentDeviceSighting.getStatus());
         metadata.add("device", device);
 
         String uid = "";

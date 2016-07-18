@@ -143,7 +143,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             public void onClick(View v) {
                 if (toggBtn.isChecked()) {
                     getIVigilateManager().setServiceSightingStateChangeInterval(20 * 1000);
-                } else {
+                }else{
                     getIVigilateManager().setServiceSightingStateChangeInterval(0);
                 }
             }
