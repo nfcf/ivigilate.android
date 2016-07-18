@@ -13,6 +13,25 @@ public class Sighting {
         ManualClosing;
     }
 
+    public enum Status {
+        @SerializedName("N")
+        Normal("N"),
+        @SerializedName("P")
+        Panic("P"),
+        @SerializedName("F")
+        Fall("F");
+
+        private String key;
+
+        Status (String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
+    }
+
     private long timestamp;
     private Type type;
     private String detector_uid;

@@ -1,5 +1,7 @@
 package com.ivigilate.android.library.interfaces;
 
+import com.ivigilate.android.library.classes.Sighting;
+
 /**
  * Created by joanaPeixoto on 14-Jun-16.
  */
@@ -27,5 +29,5 @@ public interface IDeviceSighting {
 
     public String getType();
 
-    public String getStatus();
+    public Sighting.Status getStatus();
 }

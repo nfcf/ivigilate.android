@@ -331,7 +331,7 @@ public class IVigilateService extends Service implements
                     Sighting.Type type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
 
                     JsonObject metadata = mIVigilateManager.getServiceSightingMetadata();
-                    metadata.addProperty("status", deviceSighting.getStatus());
+                    metadata.addProperty("status", deviceSighting.getStatus().getKey());
 
                     Sighting sighting = new Sighting(now, type,
                             PhoneUtils.getDeviceUniqueId(context), 0, //The detector battery will be updated before sending the sighting

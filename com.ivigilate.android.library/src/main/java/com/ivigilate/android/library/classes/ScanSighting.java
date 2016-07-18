@@ -76,7 +76,7 @@ public class ScanSighting implements IDeviceSighting{
     }
 
     @Override
-    public String getStatus() {
-        return "N";
+    public Sighting.Status getStatus() {
+        return Sighting.Status.Normal;
     }
 }
