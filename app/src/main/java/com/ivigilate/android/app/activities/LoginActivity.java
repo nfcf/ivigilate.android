@@ -72,7 +72,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     }
 
     private IVigilateManager getIVigilateManager() {
-        return ((AppContext)getApplicationContext()).getIVigilateManager();
+        return ((AppContext) getApplicationContext()).getIVigilateManager();
     }
 
     private void bindControls() {
@@ -113,7 +113,8 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             }
         });
 
-        if (BuildConfig.DEBUG) {;
+        if (BuildConfig.DEBUG) {
+            ;
             mEmailView.setText("a@b.com");
             mPasswordView.setText("123");
         }
@@ -128,11 +129,11 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
         TextView tvNoLogin = (TextView) findViewById(R.id.tvNoLogin);
         tvNoLogin.setOnClickListener(new OnClickListener() {
-                                                 @Override
-                                                 public void onClick(View v) {
-                                                     gotoMainActivity();
-                                                 }
-                                             });
+            @Override
+            public void onClick(View v) {
+                gotoMainActivity();
+            }
+        });
 
         final ToggleButton toggBtn = (ToggleButton) findViewById(R.id.toggBtnStateChangeOnly);
         toggBtn.setChecked(getIVigilateManager().getServiceSightingStateChangeInterval() > 0);
@@ -140,7 +141,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         toggBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(toggBtn.isChecked()){
+                if (toggBtn.isChecked()) {
                     getIVigilateManager().setServiceSightingStateChangeInterval(20 * 1000);
                 }else{
                     getIVigilateManager().setServiceSightingStateChangeInterval(0);
@@ -225,27 +226,27 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-            return new CursorLoader(this,
-                    // Retrieve data rows for the device user's 'profile' contact.
-                    Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
-                            ContactsContract.Contacts.Data.CONTENT_DIRECTORY), IProfileQuery.PROJECTION,
-                    // Select only email addresses.
-                    ContactsContract.Contacts.Data.MIMETYPE +
-                            " = ?", new String[]{ContactsContract.CommonDataKinds.Email
-                    .CONTENT_ITEM_TYPE},
-                    // Show primary email addresses first. Note that there won't be
-                    // a primary email address if the user hasn't specified one.
-                    ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
+        return new CursorLoader(this,
+                // Retrieve data rows for the device user's 'profile' contact.
+                Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
+                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY), IProfileQuery.PROJECTION,
+                // Select only email addresses.
+                ContactsContract.Contacts.Data.MIMETYPE +
+                        " = ?", new String[]{ContactsContract.CommonDataKinds.Email
+                .CONTENT_ITEM_TYPE},
+                // Show primary email addresses first. Note that there won't be
+                // a primary email address if the user hasn't specified one.
+                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         List<String> emails = new ArrayList<String>();
-            cursor.moveToFirst();
-            while (!cursor.isAfterLast()) {
-                emails.add(cursor.getString(IProfileQuery.ADDRESS));
-                cursor.moveToNext();
-            }
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            emails.add(cursor.getString(IProfileQuery.ADDRESS));
+            cursor.moveToNext();
+        }
 
         addEmailsToAutoComplete(emails);
     }
@@ -267,7 +268,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         try {
             Logger.d("Started...");
 
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(mPasswordView.getWindowToken(), 0);
 
             getIVigilateManager().setServerAddress(serverAddress);

@@ -157,16 +157,16 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
                 <ToggleButton
                     android:id="@+id/toggBtnStateChangeOnly"
                     android:layout_width="50dp"
                     android:layout_height="40dp"
                     android:layout_alignParentRight="true"
                     android:layout_alignRight="@+id/tvStateChangeOnly"
-                    android:textColor="@color/white"
-                     />
-            </LinearLayout>
+                    android:textColor="@color/white" />
 
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 
