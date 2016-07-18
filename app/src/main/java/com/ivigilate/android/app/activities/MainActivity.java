@@ -34,6 +34,7 @@ import com.ivigilate.android.library.IVigilateService;
 import com.ivigilate.android.library.classes.BleDeviceSighting;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
+import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
@@ -56,7 +57,6 @@ public class MainActivity extends BaseActivity {
 
     //barcode scanning
     private ImageButton mBtnScan;
-    private TextView formatTxt, contentTxt;
 
     private SightingAdapter mSightingAdapter;
     private LinkedHashMap<String, DeviceSightingEx> mSightings;
@@ -260,14 +260,12 @@ public class MainActivity extends BaseActivity {
                 checkSighting(sighting);
 
 
-
-
-                if (!deviceSighting.getStatus().equals("N")) {
+                if (deviceSighting.getStatus() != Sighting.Status.Normal) {
                     synchronized (mStatusChanges) {
                         if (mStatusChanges.isEmpty() || !mStatusChanges.contains(deviceSighting.getMac())) {
                             mStatusChanges.add(deviceSighting.getMac());
-                            String status = deviceSighting.getStatus().equals("P") ? "PANIC: " : "FALL DETECTED: ";
-                            runToastOnUIThread(status + deviceSighting.getMac(), true);
+                            String status = deviceSighting.getStatus().toString();
+                            runToastOnUIThread(status + " detected : " + deviceSighting.getMac(), true);
                         }
                     }
                 }else{
@@ -452,7 +450,6 @@ public class MainActivity extends BaseActivity {
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
         device.addProperty("manufacturer", mCurrentDeviceSighting.getManufacturer());
-        device.addProperty("status", mCurrentDeviceSighting.getStatus());
         metadata.add("device", device);
 
         String uid = "";

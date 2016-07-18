@@ -1,5 +1,6 @@
 package com.ivigilate.android.app.classes;
 
+import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.interfaces.IDeviceSighting;
 
 /**
@@ -69,7 +70,7 @@ public abstract class BaseDeviceSightingEx implements IDeviceSighting{
         return mDeviceSighting.getType();
     }
 
-    public String getStatus(){
+    public Sighting.Status getStatus(){
         return mDeviceSighting.getStatus();
     }
 }

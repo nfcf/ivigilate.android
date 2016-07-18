@@ -120,18 +120,18 @@ public class BleDeviceSighting implements IDeviceSighting {
         }
     }
 
-    public String getStatus(){
-        String mode = getData().substring(getData().length()-4, getData().length());
-        String status;
-        switch (mode){
+    public Sighting.Status getStatus(){
+        String sightingStatus = getData().substring(getData().length()-4, getData().length());
+        Sighting.Status status;
+        switch (sightingStatus){
             case "FFFF":
-                status = "P";
+                status = Sighting.Status.Panic;
                 break;
             case "AAAA":
-                status = "F";
+                status = Sighting.Status.Fall;
                 break;
             default:
-                status = "N";
+                status = Sighting.Status.Normal;
                 break;
         }
         return status ;
