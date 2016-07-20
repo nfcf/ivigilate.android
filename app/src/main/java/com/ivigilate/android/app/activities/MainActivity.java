@@ -469,7 +469,6 @@ public class MainActivity extends BaseActivity {
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
         device.addProperty("manufacturer", mCurrentDeviceSighting.getManufacturer());
-        device.addProperty("status", mCurrentDeviceSighting.getStatus());
         metadata.add("device", device);
 
         String uid = "";
