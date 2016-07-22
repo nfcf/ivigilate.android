@@ -2,6 +2,7 @@ package com.ivigilate.android.library.classes;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 
 public class DeviceProvisioning {
@@ -36,11 +37,11 @@ public class DeviceProvisioning {
         UUID;
     }
 
-    public DeviceType type;
-    public String uid;
-    public String name;
-    public String metadata;
-    public boolean is_active;
+    private DeviceType type;
+    private String uid;
+    private String name;
+    private String metadata;
+    private boolean is_active;
 
     public DeviceProvisioning() {}
 
@@ -60,4 +61,47 @@ public class DeviceProvisioning {
         Gson gson = new Gson();
         this.metadata = gson.toJson(metadata);
     }
+
+    public DeviceType getType() {
+        return type;
+    }
+
+    public void setType(DeviceType type) {
+        this.type = type;
+    }
+
+    public boolean getActive() {
+        return is_active;
+    }
+
+    public void setActive(boolean is_active) {
+        this.is_active = is_active;
+    }
+
+    public JsonObject getMetadata() {
+        JsonParser parser = new JsonParser();
+        return parser.parse(this.metadata).getAsJsonObject();
+    }
+
+    public void setMetadata(JsonObject metadata) {
+        Gson gson = new Gson();
+        this.metadata = gson.toJson(metadata);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
 }

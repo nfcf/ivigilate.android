@@ -1,10 +1,8 @@
 package com.ivigilate.android.app.activities;
 
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.Image;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,8 +28,6 @@ import com.ivigilate.android.app.classes.DeviceSightingEx;
 import com.ivigilate.android.app.classes.SightingAdapter;
 import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
-import com.ivigilate.android.library.IVigilateService;
-import com.ivigilate.android.library.classes.BleDeviceSighting;
 import com.ivigilate.android.library.classes.Device;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.Sighting;
@@ -356,7 +352,7 @@ public class MainActivity extends BaseActivity {
         dialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                provisionDevice();
+                provisionDeviceAsBeacon();
                 dialog.dismiss();
             }
         });
@@ -441,7 +437,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void provisionDevice() {
+    private void provisionDeviceAsBeacon() {
 
         runToastOnUIThread("Provisioning device...", false);
 
@@ -539,14 +535,5 @@ public class MainActivity extends BaseActivity {
         return typeIconId;
     }
 
-    private void runToastOnUIThread(final String toastText, final boolean isLong) {
-        MainActivity.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast toast = Toast.makeText(getApplicationContext(), toastText, isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
-    }
 }
 

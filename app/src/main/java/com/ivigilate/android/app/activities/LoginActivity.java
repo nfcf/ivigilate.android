@@ -2,9 +2,11 @@ package com.ivigilate.android.app.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
@@ -22,7 +24,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -30,14 +31,17 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.google.gson.JsonObject;
 import com.ivigilate.android.app.AppContext;
 import com.ivigilate.android.app.BuildConfig;
 import com.ivigilate.android.app.R;
 import com.ivigilate.android.app.interfaces.IProfileQuery;
 import com.ivigilate.android.app.utils.Logger;
 import com.ivigilate.android.library.IVigilateManager;
+import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.User;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
+import com.ivigilate.android.library.utils.PhoneUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -277,7 +281,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 public void success(User user) {
                     showProgress(false);
                     if (user != null) {
-                        gotoMainActivity();
+                        provisionDeviceIfWantedAndGotoMainActivity();
                     } else {
                         mPasswordView.setError(getString(R.string.error_incorrect_password));
                         mPasswordView.requestFocus();
@@ -296,4 +300,59 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             Logger.e("Failed with exception: " + e.getMessage());
         }
     }
+
+    private void provisionDeviceIfWantedAndGotoMainActivity() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Provision Detector");
+        builder.setMessage("Do you want to provision this phone on this user account?");
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                provisionPhoneAsDetector();
+                dialog.dismiss();
+                gotoMainActivity();
+            }
+        });
+
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                gotoMainActivity();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void provisionPhoneAsDetector() {
+        runToastOnUIThread("Provisioning phone as detector...", false);
+
+        JsonObject metadata = new JsonObject();
+        JsonObject device = new JsonObject();
+        device.addProperty("model", PhoneUtils.getDeviceName());
+        metadata.add("device", device);
+
+        DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.DeviceType.DetectorUser,
+                PhoneUtils.getDeviceUniqueId(this),
+                getIVigilateManager().getUser().email,
+                true,
+                metadata);
+
+        getIVigilateManager().provisionDevice(deviceProvisioning, new IVigilateApiCallback<String>() {
+            @Override
+            public void success(String resultMessage) {
+                runToastOnUIThread(resultMessage, true);
+            }
+
+            @Override
+            public void failure(String errorMsg) {
+                runToastOnUIThread(errorMsg, true);
+            }
+        });
+    }
+
+
 }

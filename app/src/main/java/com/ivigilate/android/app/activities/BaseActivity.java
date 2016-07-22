@@ -32,6 +32,16 @@ public class BaseActivity extends Activity {
     private static final int PERMISSIONS_REQUEST = 1;
     private static final int REQUEST_CODE = 1;
 
+    protected void runToastOnUIThread(final String toastText, final boolean isLong) {
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast toast = Toast.makeText(getApplicationContext(), toastText, isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
+    }
+
     protected void checkRequiredEnabledFeatures() {
         //Verify if Google API needs to be updated
         int errorCode = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext());

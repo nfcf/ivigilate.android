@@ -309,18 +309,6 @@ public class IVigilateManager {
                 if (mSettings.getUser() != null) {
                     mApi = Rest.createService(IVigilateApi.class, mContext, mSettings.getServerAddress(), mSettings.getUser().token);
 
-                    JsonObject metadata = new JsonObject();
-                    JsonObject device = new JsonObject();
-                    device.addProperty("model", PhoneUtils.getDeviceName());
-                    metadata.add("device", device);
-                    DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.DeviceType.DetectorUser,
-                            PhoneUtils.getDeviceUniqueId(mContext),
-                            mSettings.getUser().email,
-                            true,
-                            metadata);
-
-                    provisionDevice(deviceProvisioning, null);
-
                     if (callback != null) callback.success(result.data);
                 } else {
                     if (callback != null) callback.failure("Failed to get User info!");
@@ -385,7 +373,7 @@ public class IVigilateManager {
         mApi.provisionDevice(deviceProvisioning, new Callback<ApiResponse<String>>() {
             @Override
             public void success(ApiResponse<String> result, Response response) {
-                Logger.i("Device '" + deviceProvisioning.uid + "' of type '" + deviceProvisioning.type.toString() + "' provisioned successfully.");
+                Logger.i("Device '" + deviceProvisioning.getUid() + "' of type '" + deviceProvisioning.getType().toString() + "' provisioned successfully.");
                 mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
 
                 if (callback != null) callback.success(result.data);
