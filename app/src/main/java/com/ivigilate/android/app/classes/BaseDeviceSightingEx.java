@@ -73,8 +73,4 @@ public abstract class BaseDeviceSightingEx implements IDeviceSighting{
     public Sighting.Status getStatus(){
         return mDeviceSighting.getStatus();
     }
-
-    public String getStatus(){
-        return mDeviceSighting.getStatus();
-    }
 }

@@ -1,10 +1,14 @@
 package com.ivigilate.android.library.classes;
 
-public class GPSLocation {
+import com.ivigilate.android.library.interfaces.ISighting;
+
+import java.util.UUID;
+
+public class GPSLocation implements ISighting{
     public String type;
     public double[] coordinates;
 
-    public GPSLocation() { }
+    public GPSLocation(){ }
 
     public GPSLocation(double longitude, double latitude, double altitude){
         this.type = "Point";
@@ -20,5 +24,24 @@ public class GPSLocation {
 
     public double getLatitude() {
         return this.coordinates[1];
+    }
+
+    @Override
+    public String getUUID() {
+        return UUID.randomUUID().toString();
+    }
+
+    @Override
+    public int getRssi() {
+        return 0;
+    }
+
+    @Override
+    public void setRssi(int rssi) {
+
+    }
+    @Override
+    public String getType() {
+        return type;
     }
 }

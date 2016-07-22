@@ -10,7 +10,9 @@ public class Sighting {
         @SerializedName("AC")
         AutoClosing,
         @SerializedName("MC")
-        ManualClosing;
+        ManualClosing,
+        @SerializedName("GPS")
+        GPS;
     }
 
     public enum Status {
@@ -66,7 +68,9 @@ public class Sighting {
     }
 
     public String getKey() {
-        return beacon_mac + beacon_uid;
+        String key = null;
+        return key = beacon_mac == null && beacon_uid == null ? location.getUUID():
+                beacon_mac + beacon_uid;
     }
 
     public long getTimestamp() {

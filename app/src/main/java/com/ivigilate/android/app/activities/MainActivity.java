@@ -279,11 +279,11 @@ public class MainActivity extends BaseActivity {
 
 
 
-                if (!deviceSighting.getStatus().equals("N")) {
+                if (!deviceSighting.getStatus().equals(Sighting.Status.Normal)){
                     synchronized (mStatusChanges) {
                         if (mStatusChanges.isEmpty() || !mStatusChanges.contains(deviceSighting.getMac())) {
                             mStatusChanges.add(deviceSighting.getMac());
-                            String status = deviceSighting.getStatus().equals("P") ? "PANIC: " : "FALL DETECTED: ";
+                            String status = deviceSighting.getStatus().equals(Sighting.Status.Panic) ? "PANIC DETECTED: " : "FALL DETECTED: ";
                             runToastOnUIThread(status + deviceSighting.getMac(), true);
                         }
                     }
@@ -469,7 +469,6 @@ public class MainActivity extends BaseActivity {
         JsonObject metadata = new JsonObject();
         JsonObject device = new JsonObject();
         device.addProperty("manufacturer", mCurrentDeviceSighting.getManufacturer());
-        device.addProperty("status", mCurrentDeviceSighting.getStatus());
         metadata.add("device", device);
 
         String uid = "";
