@@ -259,32 +259,12 @@ public class MainActivity extends BaseActivity {
                 final DeviceSightingEx sighting = new DeviceSightingEx(deviceSighting);
                 checkSighting(sighting);
 
-
                 if (deviceSighting.getStatus() != Sighting.Status.Normal) {
                     synchronized (mStatusChanges) {
                         if (mStatusChanges.isEmpty() || !mStatusChanges.contains(deviceSighting.getMac())) {
                             mStatusChanges.add(deviceSighting.getMac());
                             String status = deviceSighting.getStatus().toString();
                             runToastOnUIThread(status + " detected : " + deviceSighting.getMac(), true);
-                        }
-                    }
-                }else{
-                    synchronized (mStatusChanges){
-                        if(!mStatusChanges.isEmpty() && mStatusChanges.contains(deviceSighting.getMac())){
-                            mStatusChanges.remove(deviceSighting.getMac());
-                        }
-                    }
-                }
-
-
-
-
-                if (!deviceSighting.getStatus().equals("N")) {
-                    synchronized (mStatusChanges) {
-                        if (mStatusChanges.isEmpty() || !mStatusChanges.contains(deviceSighting.getMac())) {
-                            mStatusChanges.add(deviceSighting.getMac());
-                            String status = deviceSighting.getStatus().equals("P") ? "PANIC: " : "FALL DETECTED: ";
-                            runToastOnUIThread(status + deviceSighting.getMac(), true);
                         }
                     }
                 }else{
@@ -302,7 +282,6 @@ public class MainActivity extends BaseActivity {
                         mSightings.put(key, sighting);
 
                         mSightingAdapter.notifyDataSetChanged();
-
 
                         mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic) + "kB, " +
                                 "Tx: " + Long.toString(txTraffic) + "kB");
