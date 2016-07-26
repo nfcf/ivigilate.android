@@ -17,9 +17,9 @@ import java.util.LinkedHashMap;
 
 public class SightingAdapter extends BaseAdapter {
 
-    private final LinkedHashMap<String, DeviceSightingEx> mValues;
+    private final LinkedHashMap<String, SightingEx> mValues;
 
-    public SightingAdapter(LinkedHashMap<String, DeviceSightingEx> values) {
+    public SightingAdapter(LinkedHashMap<String, SightingEx> values) {
         mValues = values;
     }
 
@@ -29,7 +29,7 @@ public class SightingAdapter extends BaseAdapter {
     }
 
     @Override
-    public DeviceSightingEx getItem(int position) {
+    public SightingEx getItem(int position) {
         return  mValues.get(mValues.keySet().toArray()[position]);
     }
 
@@ -43,7 +43,7 @@ public class SightingAdapter extends BaseAdapter {
         LayoutInflater inflater = (LayoutInflater) parent.getContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.sighting, parent, false);
-        DeviceSightingEx sighting = getItem(position);
+        SightingEx sighting = getItem(position);
 
         if(sighting.isDeviceProvisioned()) {
             RelativeLayout rlSighting = (RelativeLayout) rowView.findViewById(R.id.layout);

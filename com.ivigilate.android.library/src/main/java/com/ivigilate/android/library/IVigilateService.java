@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.fitness.data.BleDevice;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -220,12 +221,6 @@ public class IVigilateService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
         mLastKnownLocation = location;
-
-        mIVigilateManager.onLocationChanged(new GPSLocation(
-                location.getLongitude(),
-                location.getLatitude(),
-                location.getAltitude()));
-
         handleGPSSighting(location);
     }
 
@@ -320,20 +315,42 @@ public class IVigilateService extends Service implements
 
     private void handleSighting(ISighting unprocessedSighting, int rssi) {
         Context context = getApplicationContext();
-        IDeviceSighting deviceSighting = null;
         String mac = null;
-        String uuid = null;
+        String uuid = unprocessedSighting.getUUID();
         GPSLocation location;
         int battery = 0;
-        Sighting.Type type = Sighting.Type.GPS;
+        Sighting.Type type;
+        JsonObject metadata = mIVigilateManager.getServiceSightingMetadata();
         try {
-            if (unprocessedSighting instanceof IDeviceSighting) {
-                deviceSighting = (IDeviceSighting) unprocessedSighting;
-                mIVigilateManager.onDeviceSighting(deviceSighting);
+            if (!(unprocessedSighting instanceof GPSLocation)) {
+                if (unprocessedSighting instanceof BleDeviceSighting) {
+                    BleDeviceSighting bleDeviceSighting = (BleDeviceSighting) unprocessedSighting;
+                    mac = bleDeviceSighting.getMac();
+                    battery = bleDeviceSighting.getBattery();
+                    metadata.addProperty("status", bleDeviceSighting.getStatus().getKey());
+                    Logger.d("Beacon sighted: '%s','%s',%s,%s",
+                            mac, uuid, battery, rssi);
+                } else if (unprocessedSighting instanceof NdfDeviceSighting) {
+                    Logger.d("NFC tag sighted: '%s, %s",
+                            uuid, rssi);
+                } else {
+                    Logger.d("Scan sighted: '%s'",
+                            uuid);
+                }
+                mIVigilateManager.onDeviceOrScanSighting(unprocessedSighting);
                 location = mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(),
                         mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null;
+                type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ?
+                        Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
             } else {
                 location = (GPSLocation) unprocessedSighting;
+                mIVigilateManager.onLocationChanged(new GPSLocation(
+                        location.getLongitude(),
+                        location.getLatitude(),
+                        0));
+                type = Sighting.Type.GPS;
+                Logger.d("GPS coordinates sighted: '%s'",
+                        uuid);
             }
 
             if (mDequeSightings != null) { // This should never be null but just making sure...
@@ -343,22 +360,9 @@ public class IVigilateService extends Service implements
                 // Immediately decide to ignore sighting if the detector was marked as invalid...
                 boolean ignoreSighting = now - mInvalidDetectorCheckTimestamp < IGNORE_INTERVAL;
                 if (!ignoreSighting) {
-                    //check if this can move up here to be able to add status property to metadata after checking if device != null
-                    JsonObject metadata = mIVigilateManager.getServiceSightingMetadata();
-
-                    if (deviceSighting != null) {
-                        Logger.d("Beacon sighted: '%s','%s',%s,%s",
-                                deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi);
-                        metadata.addProperty("status", deviceSighting.getStatus().getKey());
-                        mac = deviceSighting.getMac();
-                        uuid = deviceSighting.getUUID();
-                        battery = deviceSighting.getBattery();
-                        type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ?
-                                Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
-                    }
-
+                    String detector_uuid = PhoneUtils.getDeviceUniqueId(context);
                     Sighting sighting = new Sighting(now, type,
-                            PhoneUtils.getDeviceUniqueId(context), 0, //The detector battery will be updated before sending the sighting
+                            detector_uuid, 0, //The detector battery will be updated before sending the sighting
                             mac, uuid, battery, rssi, location, metadata);
 
                     Sighting previous_item = mDequeSightings.remove(sighting) ? sighting : null;
@@ -380,15 +384,13 @@ public class IVigilateService extends Service implements
                         synchronized (mActiveSightings) {
                             if (!ignoreSighting &&
                                     (type == Sighting.Type.AutoClosing ||
-                                            !ignoreSighting && type == Sighting.Type.GPS ||
+                                            type == Sighting.Type.GPS ||
                                             !mActiveSightings.containsKey(sighting.getKey()) ||
                                             !mActiveSightings.get(sighting.getKey()).isActive() ||
                                             !sighting.getMetadata().equals(mActiveSightings.get(sighting.getKey()).getMetadata()))) {
 
                                 synchronized (mDequeSightings) {
-                                    if (type == Sighting.Type.AutoClosing) {
-                                        mDequeSightings.remove(sighting); // Removes if similar one exists, otherwise does nothing
-                                    }
+                                    mDequeSightings.remove(sighting); // Removes if similar one exists, otherwise does nothing
                                     mDequeSightings.putLast(sighting); // Queue to be sent to server
                                 }
                             }

@@ -7,19 +7,13 @@ import com.ivigilate.android.library.classes.Sighting;
  */
 public interface IDeviceSighting extends ISighting{
 
-    public String getMac();
+    public int getRssi();
 
-    public void setDeviceName(String deviceName);
-
-    public String getName();
+    public void setRssi(int rssi);
 
     public String getManufacturer();
 
-    public String getData();
-
     public String getPayload();
-
-    public int getBattery();
 
     public Sighting.Status getStatus();
 

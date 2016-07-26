@@ -7,9 +7,9 @@ import com.google.gson.annotations.SerializedName;
 public class DeviceProvisioning {
     public enum DeviceType {
         @SerializedName("BF")
-        BeaconFixed("Beacon Fixed"),
+        TagFixed("Tag Fixed"),
         @SerializedName("BM")
-        BeaconMovable("Beacon Movable"),
+        TagMovable("Tag Movable"),
         @SerializedName("DF")
         DetectorFixed("Detector Fixed"),
         @SerializedName("DM")

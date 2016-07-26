@@ -1,6 +1,9 @@
 package com.ivigilate.android.library.classes;
 
-public class Device {
+/**
+ * Returned by the server after registering
+ */
+public class RegisteredDevice {
 
     private String id;
     private String name;
@@ -10,9 +13,9 @@ public class Device {
     private String type;
     private DeviceProvisioning.DeviceType deviceType;
 
-    public Device(){}
+    public RegisteredDevice(){}
 
-    public Device(String name, DeviceProvisioning.DeviceType deviceType, int battery, boolean isActive, String uid){
+    public RegisteredDevice(String name, DeviceProvisioning.DeviceType deviceType, int battery, boolean isActive, String uid){
         this.name = name;
         this.deviceType = deviceType;
         this.battery = battery;

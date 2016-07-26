@@ -14,17 +14,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.ivigilate.android.library.classes.ApiResponse;
-import com.ivigilate.android.library.classes.Device;
+import com.ivigilate.android.library.classes.RegisteredDevice;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.GPSLocation;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.classes.User;
 import com.ivigilate.android.library.interfaces.ILocationListener;
+import com.ivigilate.android.library.interfaces.ISighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApi;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
-import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.PhoneUtils;
 
@@ -342,7 +342,7 @@ public class IVigilateManager {
                     // Do nothing...
                 }
 
-                Logger.e("Device provisioning failed with error: " + error);
+                Logger.e("RegisteredDevice provisioning failed with error: " + error);
                 if (callback != null) callback.failure(error);
             }
         });
@@ -385,7 +385,7 @@ public class IVigilateManager {
         mApi.provisionDevice(deviceProvisioning, new Callback<ApiResponse<String>>() {
             @Override
             public void success(ApiResponse<String> result, Response response) {
-                Logger.i("Device '" + deviceProvisioning.uid + "' of type '" + deviceProvisioning.type.toString() + "' provisioned successfully.");
+                Logger.i("RegisteredDevice '" + deviceProvisioning.uid + "' of type '" + deviceProvisioning.type.toString() + "' provisioned successfully.");
                 mSettings.setServerTimeOffset(result.timestamp - System.currentTimeMillis());
 
                 if (callback != null) callback.success(result.data);
@@ -406,16 +406,16 @@ public class IVigilateManager {
                     // Do nothing...
                 }
 
-                Logger.e("Device provisioning failed with error: " + error);
+                Logger.e("RegisteredDevice provisioning failed with error: " + error);
                 if (callback != null) callback.failure(error);
             }
         });
     }
 
-    public void getBeacons(final IVigilateApiCallback<List<Device>> callback) {
-        mApi.getBeacons(new Callback<List<Device>>() {
+    public void getBeacons(final IVigilateApiCallback<List<RegisteredDevice>> callback) {
+        mApi.getBeacons(new Callback<List<RegisteredDevice>>() {
             @Override
-            public void success(List<Device> result, Response response) {
+            public void success(List<RegisteredDevice> result, Response response) {
                 if (callback != null) callback.success(result);
             }
 
@@ -434,16 +434,16 @@ public class IVigilateManager {
                     // Do nothing...
                 }
 
-                Logger.e("Device provisioning failed with error: " + error);
+                Logger.e("RegisteredDevice provisioning failed with error: " + error);
                 if (callback != null) callback.failure(error);
             }
         });
     }
 
-    public void getDetectors(final IVigilateApiCallback<List<Device>> callback) {
-        mApi.getDetectors(new Callback<List<Device>>() {
+    public void getDetectors(final IVigilateApiCallback<List<RegisteredDevice>> callback) {
+        mApi.getDetectors(new Callback<List<RegisteredDevice>>() {
             @Override
-            public void success(List<Device> result, Response response) {
+            public void success(List<RegisteredDevice> result, Response response) {
                 if (callback != null) callback.success(result);
             }
 
@@ -462,16 +462,16 @@ public class IVigilateManager {
                     // Do nothing...
                 }
 
-                Logger.e("Device provisioning failed with error: " + error);
+                Logger.e("RegisteredDevice provisioning failed with error: " + error);
                 if (callback != null) callback.failure(error);
             }
         });
     }
 
 
-    protected void onDeviceSighting(IDeviceSighting deviceSighting) {
+    protected void onDeviceOrScanSighting(ISighting rawSighting) {
         if (mSightingListener != null) {
-            mSightingListener.onDeviceSighting(deviceSighting);
+            mSightingListener.onDeviceOrScanSighting(rawSighting);
         }
     }
 

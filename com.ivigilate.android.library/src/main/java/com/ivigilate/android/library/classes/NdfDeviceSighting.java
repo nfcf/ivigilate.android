@@ -15,13 +15,7 @@ public class NdfDeviceSighting implements IDeviceSighting {
     private Tag mTag;
     private int mRssi;
 
-    private String mDeviceName;
-
     private NdefRecord[] mRecords;
-
-
-    public NdfDeviceSighting() {
-    }
 
     public NdfDeviceSighting(NdfDeviceSighting deviceSighting) {
         mTag = deviceSighting.mTag;
@@ -36,34 +30,21 @@ public class NdfDeviceSighting implements IDeviceSighting {
     }
 
     @Override
-    public String getMac() {
-        return "";
-    }
-
-    @Override
-    public void setDeviceName(String mDeviceName) {
-        this.mDeviceName = mDeviceName;
-    }
-
-    @Override
-    public String getName() {
-        return mDeviceName;
-    }
-
-    @Override
-    public String getManufacturer() {
-        String manufacturerCode = StringUtils.bytesToHexString(mTag.getId()).substring(0,2);
-        return manufacturerCode + " " + NFCUtils.getManufacturerDescription(manufacturerCode);
-    }
-
-    @Override
     public String getUUID() {
         return "NFC" + StringUtils.bytesToHexString(mTag.getId());
     }
 
     @Override
-    public String getData() {
-        return "";
+    public String getType() {
+        String tech = getTechList()[0];
+        int i = tech.lastIndexOf(".");
+        return getTechList()[0].substring(i + 1, tech.length());
+    }
+
+    @Override
+    public String getManufacturer() {
+        String manufacturerCode = StringUtils.bytesToHexString(mTag.getId()).substring(0, 2);
+        return manufacturerCode + " " + NFCUtils.getManufacturerDescription(manufacturerCode);
     }
 
     @Override
@@ -77,32 +58,23 @@ public class NdfDeviceSighting implements IDeviceSighting {
         return payload;
     }
 
+    @Override
     public int getRssi() {
         return mRssi;
     }
 
+    @Override
     public void setRssi(int mRssi) {
         this.mRssi = mRssi;
-    }
-
-    public int getBattery() {
-        return 0;
-    }
-
-    public String[] getTechList() {
-        if(mTag != null) return mTag.getTechList();
-        return null;
-    }
-
-
-    public String getType() {
-         String tech = getTechList()[0];
-         int i = tech.lastIndexOf(".");
-         return getTechList()[0].substring(i + 1, tech.length());
     }
 
     @Override
     public Sighting.Status getStatus() {
         return Sighting.Status.Normal;
+    }
+
+    public String[] getTechList() {
+        if (mTag != null) return mTag.getTechList();
+        return null;
     }
 }

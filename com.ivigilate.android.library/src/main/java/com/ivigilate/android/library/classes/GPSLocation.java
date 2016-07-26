@@ -32,15 +32,6 @@ public class GPSLocation implements ISighting{
     }
 
     @Override
-    public int getRssi() {
-        return 0;
-    }
-
-    @Override
-    public void setRssi(int rssi) {
-
-    }
-    @Override
     public String getType() {
         return type;
     }
