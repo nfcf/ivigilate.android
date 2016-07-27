@@ -3,6 +3,9 @@ package com.ivigilate.android.library.classes;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import com.ivigilate.android.library.interfaces.IDeviceSighting;
+import com.ivigilate.android.library.interfaces.ISighting;
+import com.ivigilate.android.library.utils.StringUtils;
 
 public class Sighting {
 
@@ -10,7 +13,9 @@ public class Sighting {
         @SerializedName("AC")
         AutoClosing,
         @SerializedName("MC")
-        ManualClosing;
+        ManualClosing,
+        @SerializedName("GPS")
+        GPS;
     }
 
     public enum Status {
@@ -49,14 +54,14 @@ public class Sighting {
         this.is_active = true;
     }
 
-    public Sighting(long timestamp, Type type, String detector_uid, int detector_battery, String beacon_mac, String beacon_uid, int beacon_battery, int rssi, GPSLocation location, JsonObject metadata){
+    public Sighting(long timestamp, Type type, String detector_uid, int detector_battery, String beacon_mac, String uuid, int beacon_battery, int rssi, GPSLocation location, JsonObject metadata){
         this();
         this.timestamp = timestamp;
         this.type = type;
         this.detector_uid = detector_uid;
         this.detector_battery = detector_battery;
         this.beacon_mac = beacon_mac != null ? beacon_mac.toLowerCase().replace(":", "") : "";
-        this.beacon_uid = beacon_uid != null ? beacon_uid.toLowerCase().replace("-", "") : "";
+        this.beacon_uid = uuid != null ? uuid.toLowerCase().replace("-", "") : "";
         this.beacon_battery = beacon_battery;
         this.rssi = rssi;
         this.location = location;

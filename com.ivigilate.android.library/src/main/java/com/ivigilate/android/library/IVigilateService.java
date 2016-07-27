@@ -34,7 +34,7 @@ import com.ivigilate.android.library.classes.NdfDeviceSighting;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.ScanSighting;
 import com.ivigilate.android.library.classes.Sighting;
-import com.ivigilate.android.library.interfaces.IDeviceSighting;
+import com.ivigilate.android.library.interfaces.ISighting;
 import com.ivigilate.android.library.interfaces.IVigilateApi;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.PhoneUtils;
@@ -86,7 +86,7 @@ public class IVigilateService extends Service implements
     private IVigilateApi mApi;
 
     private long mInvalidDetectorCheckTimestamp;
-    private HashMap<String, Long> mInvalidBeacons;
+    private HashMap<String, Long> mInvalidSightings;
     private HashMap<String, Sighting> mActiveSightings;
 
     private final IBinder iVigilateServiceBinder = new Binder();
@@ -109,7 +109,7 @@ public class IVigilateService extends Service implements
 
         mIVigilateManager = IVigilateManager.getInstance(this);
 
-        mInvalidBeacons = mIVigilateManager.getServiceInvalidBeacons();
+        mInvalidSightings = mIVigilateManager.getServiceInvalidBeacons();
         mActiveSightings = mIVigilateManager.getServiceActiveSightings();
 
         buildGoogleApiAndLocationRequest();
@@ -220,10 +220,7 @@ public class IVigilateService extends Service implements
     public void onLocationChanged(Location location) {
         mLastKnownLocation = location;
 
-        mIVigilateManager.onLocationChanged(new GPSLocation(
-                location.getLongitude(),
-                location.getLatitude(),
-                location.getAltitude()));
+        handleGPSSighting(location);
     }
 
     @Override
@@ -311,11 +308,49 @@ public class IVigilateService extends Service implements
         handleSighting(new ScanSighting(scanContent, scanFormat), 0);
     }
 
-    private void handleSighting(IDeviceSighting deviceSighting, int rssi) {
+    private void handleGPSSighting(Location location) {
+        handleSighting(new GPSLocation(location.getLongitude(), location.getLatitude(), location.getAltitude()), 0);
+    }
+
+    private void handleSighting(ISighting unprocessedSighting, int rssi) {
         Context context = getApplicationContext();
+        String beaconMac = null;
+        String tagOrGpsUid = unprocessedSighting.getUUID();
+        GPSLocation location;
+        int battery = 0;
+        Sighting.Type type;
+        JsonObject metadata = mIVigilateManager.getServiceSightingMetadata();
 
         try {
-            mIVigilateManager.onDeviceSighting(deviceSighting);
+            if (unprocessedSighting instanceof GPSLocation) {
+                mIVigilateManager.onLocationChanged((GPSLocation) unprocessedSighting);
+
+                location = (GPSLocation) unprocessedSighting;
+                type = Sighting.Type.GPS;
+
+                Logger.d("GPS coordinates sighted - Lat:%s, Long:%s'",
+                        location.getLatitude(), location.getLongitude());
+            } else {
+                mIVigilateManager.onTagSighting(unprocessedSighting);
+
+                location = mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(),
+                        mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null;
+                type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ?
+                        Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
+
+                if (unprocessedSighting instanceof BleDeviceSighting) {
+                    BleDeviceSighting bleDeviceSighting = (BleDeviceSighting) unprocessedSighting;
+                    beaconMac = bleDeviceSighting.getMac();
+                    battery = bleDeviceSighting.getBattery();
+                    metadata.addProperty("status", bleDeviceSighting.getStatus().getKey());
+                    Logger.d("Beacon sighted: '%s','%s',%s,%s",
+                            beaconMac, tagOrGpsUid, battery, rssi);
+                } else if (unprocessedSighting instanceof NdfDeviceSighting) {
+                    Logger.d("NFC tag sighted: '%s, %s", tagOrGpsUid);
+                } else {
+                    Logger.d("Scan sighted: '%s'", tagOrGpsUid);
+                }
+            }
 
             if (mDequeSightings != null) { // This should never be null but just making sure...
 
@@ -324,33 +359,23 @@ public class IVigilateService extends Service implements
                 // Immediately decide to ignore sighting if the detector was marked as invalid...
                 boolean ignoreSighting = now - mInvalidDetectorCheckTimestamp < IGNORE_INTERVAL;
                 if (!ignoreSighting) {
-
-                    Logger.d("Beacon sighted: '%s','%s',%s,%s",
-                            deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi);
-
-                    Sighting.Type type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ? Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
-
-                    JsonObject metadata = mIVigilateManager.getServiceSightingMetadata();
-                    metadata.addProperty("status", deviceSighting.getStatus().getKey());
-
+                    String detectorUid = PhoneUtils.getDeviceUniqueId(context);
                     Sighting sighting = new Sighting(now, type,
-                            PhoneUtils.getDeviceUniqueId(context), 0, //The detector battery will be updated before sending the sighting
-                            deviceSighting.getMac(), deviceSighting.getUUID(), deviceSighting.getBattery(), rssi,
-                            mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(), mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null,
-                            metadata);
+                            detectorUid, 0, //The detector battery will be updated before sending the sighting
+                            beaconMac, tagOrGpsUid, battery, rssi, location, metadata);
 
                     Sighting previous_item = mDequeSightings.remove(sighting) ? sighting : null;
                     if (previous_item == null) {
 
-                        // Check if the beacon was marked as invalid...
-                        synchronized (mInvalidBeacons) {
-                            if (mInvalidBeacons.containsKey(sighting.getKey())) {
+                        // Check if the sighting was marked as invalid...
+                        synchronized (mInvalidSightings) {
+                            if (mInvalidSightings.containsKey(sighting.getKey())) {
                                 // Ignore sighting for IGNORE_INTERVAL
-                                if (now - mInvalidBeacons.get(sighting.getKey()) < IGNORE_INTERVAL) {
+                                if (now - mInvalidSightings.get(sighting.getKey()) < IGNORE_INTERVAL) {
                                     ignoreSighting = true;
                                 } else {
-                                    mInvalidBeacons.remove(sighting.getKey());
-                                    mIVigilateManager.setServiceInvalidBeacons(mInvalidBeacons);
+                                    mInvalidSightings.remove(sighting.getKey());
+                                    mIVigilateManager.setServiceInvalidBeacons(mInvalidSightings);
                                 }
                             }
                         }
@@ -358,13 +383,13 @@ public class IVigilateService extends Service implements
                         synchronized (mActiveSightings) {
                             if (!ignoreSighting &&
                                     (type == Sighting.Type.AutoClosing ||
+                                            type == Sighting.Type.GPS ||
                                             !mActiveSightings.containsKey(sighting.getKey()) ||
                                             !mActiveSightings.get(sighting.getKey()).isActive() ||
                                             !sighting.getMetadata().equals(mActiveSightings.get(sighting.getKey()).getMetadata()))) {
 
                                 synchronized (mDequeSightings) {
                                     mDequeSightings.remove(sighting); // Removes if similar one exists, otherwise does nothing
-
                                     mDequeSightings.putLast(sighting); // Queue to be sent to server
                                 }
                             }
@@ -391,7 +416,7 @@ public class IVigilateService extends Service implements
             }
         } catch (Exception ex) {
             Logger.e("Failed to handleNonBeaconSighting with exception: " + ex.getMessage());
-            Toast.makeText(context, "Failed to handleNonBeaconSighting...", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(context, "Failed to handleNonBeaconSighting...", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -486,12 +511,12 @@ public class IVigilateService extends Service implements
                                         }
                                     }
                                     if (result.data.invalid_beacons.size() > 0) {
-                                        synchronized (mInvalidBeacons) {
+                                        synchronized (mInvalidSightings) {
                                             for (String ignoreSightingKey : result.data.invalid_beacons) {
                                                 // Mark it as invalid to be ignored...
-                                                mInvalidBeacons.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
+                                                mInvalidSightings.put(ignoreSightingKey, now + mIVigilateManager.getServerTimeOffset());
                                             }
-                                            mIVigilateManager.setServiceInvalidBeacons(mInvalidBeacons);
+                                            mIVigilateManager.setServiceInvalidBeacons(mInvalidSightings);
                                         }
                                     }
                                 }

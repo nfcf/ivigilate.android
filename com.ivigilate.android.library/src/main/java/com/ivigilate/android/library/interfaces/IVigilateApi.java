@@ -2,7 +2,7 @@ package com.ivigilate.android.library.interfaces;
 
 import com.ivigilate.android.library.classes.AddSightingResponse;
 import com.ivigilate.android.library.classes.ApiResponse;
-import com.ivigilate.android.library.classes.Device;
+import com.ivigilate.android.library.classes.RegisteredDevice;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.Sighting;
 import com.ivigilate.android.library.classes.User;
@@ -28,8 +28,8 @@ public interface IVigilateApi {
     void addSightings(@Body List<Sighting> sightings, Callback<ApiResponse<AddSightingResponse>> cb);
 
     @GET("/api/v1/beacons/")
-    void getBeacons(Callback<List<Device>> cb);
+    void getBeacons(Callback<List<RegisteredDevice>> cb);
 
     @GET("/api/v1/detectors/")
-    void getDetectors(Callback<List<Device>> cb);
+    void getDetectors(Callback<List<RegisteredDevice>> cb);
 }
