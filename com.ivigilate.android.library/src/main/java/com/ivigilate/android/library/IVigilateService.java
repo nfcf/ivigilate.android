@@ -427,32 +427,41 @@ public class IVigilateService extends Service implements
             try {
                 Logger.i("SendSightingsThread is up and running.");
 
-                while (!mAbortApiThread) {
+                boolean ranOnceAfterAbortApiThread = false;
+                while (!mAbortApiThread || !ranOnceAfterAbortApiThread) {
+                    if (mAbortApiThread) {
+                        ranOnceAfterAbortApiThread = true;
+                    }
+
                     int currentDetectorBattery = (int) PhoneUtils.getBatteryLevel(getApplicationContext());
 
                     // Take Sightings from queue and add them to List to be sent to server
                     final List<Sighting> sightings = new ArrayList<Sighting>();
-                    synchronized (mDequeSightings) {
-                        for (int i = 0; i < 100; i++) {
-                            if (mDequeSightings.isEmpty()) break;
-                            else {
-                                Sighting sighting = mDequeSightings.takeFirst();
-                                sighting.setDetectorBattery(currentDetectorBattery);
+                    if (!mAbortApiThread) {
+                        synchronized (mDequeSightings) {
+                            for (int i = 0; i < 100; i++) {
+                                if (mDequeSightings.isEmpty()) break;
+                                else {
+                                    Sighting sighting = mDequeSightings.takeFirst();
+                                    sighting.setDetectorBattery(currentDetectorBattery);
 
-                                sightings.add(sighting);
+                                    sightings.add(sighting);
+                                }
                             }
                         }
                     }
 
                     // If there are activeSightings and we're only suppose to send state changes...
                     // Check timestamps and only send if more than StateChangeInterval has elapsed since last sighting
+                    // OR if mAbortApiThread == true (we run this code one last time to close open sightings...)
                     if (mActiveSightings.size() > 0) {
                         final long now = System.currentTimeMillis() + mIVigilateManager.getServerTimeOffset();
 
                         synchronized (mActiveSightings) {
                             for (Sighting activeSighting : new ArrayList<Sighting>(mActiveSightings.values())) {
-                                if (activeSighting.isActive() &&
-                                        now - activeSighting.getTimestamp() > mIVigilateManager.getServiceSightingStateChangeInterval()) {
+                                if (mAbortApiThread ||
+                                        (activeSighting.isActive() &&
+                                        now - activeSighting.getTimestamp() > mIVigilateManager.getServiceSightingStateChangeInterval())) {
                                     activeSighting.setActive(false);  // This is to tell the server to close the sighting
                                     activeSighting.setDetectorBattery(currentDetectorBattery);
 

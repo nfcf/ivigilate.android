@@ -31,7 +31,6 @@ import com.ivigilate.android.library.IVigilateManager;
 import com.ivigilate.android.library.classes.RegisteredDevice;
 import com.ivigilate.android.library.classes.DeviceProvisioning;
 import com.ivigilate.android.library.classes.Sighting;
-import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.ISighting;
 import com.ivigilate.android.library.interfaces.ISightingListener;
 import com.ivigilate.android.library.interfaces.IVigilateApiCallback;
@@ -280,7 +279,6 @@ public class MainActivity extends BaseActivity {
                         mSightings.put(key, sighting);
 
                         mSightingAdapter.notifyDataSetChanged();
-
 
                         mTvTrafficStats.setText("Rx: " + Long.toString(rxTraffic) + "kB, " +
                                 "Tx: " + Long.toString(txTraffic) + "kB");
@@ -538,14 +536,5 @@ public class MainActivity extends BaseActivity {
         return typeIconId;
     }
 
-    private void runToastOnUIThread(final String toastText, final boolean isLong) {
-        MainActivity.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast toast = Toast.makeText(getApplicationContext(), toastText, isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
-    }
 }
 

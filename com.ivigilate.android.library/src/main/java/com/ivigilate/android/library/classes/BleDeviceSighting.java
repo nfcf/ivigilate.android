@@ -104,7 +104,7 @@ public class BleDeviceSighting implements IDeviceSighting {
 
     public int getBattery() {
         if (getManufacturer().contains("6561") && getType().contains("636F") &&
-                getData().length() > 32) {  // EM Micro
+                getData().length() >= 32) {  // EM Micro
             //To map
             //[A, B] --> [a, b]
             //use this formula
@@ -121,19 +121,21 @@ public class BleDeviceSighting implements IDeviceSighting {
     }
 
     public Sighting.Status getStatus(){
-        String sightingStatus = getData().substring(getData().length()-4, getData().length());
-        Sighting.Status status;
-        switch (sightingStatus){
-            case "FFFF":
-                status = Sighting.Status.Panic;
-                break;
-            case "AAAA":
-                status = Sighting.Status.Fall;
-                break;
-            default:
-                status = Sighting.Status.Normal;
-                break;
+        Sighting.Status status = Sighting.Status.Normal;
+
+        if (getManufacturer().contains("6561") && getType().contains("636F") &&
+                getData().length() >= 44) {  // EM Micro
+            String sightingStatus = getData().substring(40, 44);
+            switch (sightingStatus) {
+                case "FFFF":
+                    status = Sighting.Status.Panic;
+                    break;
+                case "AAAA":
+                    status = Sighting.Status.Fall;
+                    break;
+            }
         }
-        return status ;
+
+        return status;
     }
 }

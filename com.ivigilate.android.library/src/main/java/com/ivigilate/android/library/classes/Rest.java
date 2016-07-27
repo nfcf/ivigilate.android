@@ -3,6 +3,7 @@ package com.ivigilate.android.library.classes;
 
 import android.content.Context;
 
+import com.ivigilate.android.library.BuildConfig;
 import com.ivigilate.android.library.R;
 import com.ivigilate.android.library.utils.Logger;
 import com.ivigilate.android.library.utils.StringUtils;
@@ -26,7 +27,7 @@ import retrofit.client.OkClient;
 public class Rest {
     static final String IVIGILATE_DEV_HOSTNAME = "dev.ivigilate.com";
     static final String IVIGILATE_PRD_HOSTNAME = "portal.ivigilate.com";
-    static final int TIMEOUT_IN_SECONDS = 8;
+    static final int TIMEOUT_IN_SECONDS = BuildConfig.DEBUG ? 20 : 10;
 
     public static <T> T createService(Class<T> serviceClass, Context context, final String serverAddress) {
         return createService(serviceClass, context, serverAddress, "");
