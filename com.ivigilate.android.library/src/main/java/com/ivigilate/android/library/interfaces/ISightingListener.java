@@ -4,7 +4,7 @@ import com.ivigilate.android.library.interfaces.IDeviceSighting;
 
 public interface ISightingListener {
 
-    void onDeviceOrScanSighting(ISighting sighting);
+    void onTagSighting(ISighting sighting);
 
 }
 

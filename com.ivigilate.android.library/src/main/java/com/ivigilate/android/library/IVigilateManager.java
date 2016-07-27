@@ -457,9 +457,9 @@ public class IVigilateManager {
     }
 
 
-    protected void onDeviceOrScanSighting(ISighting rawSighting) {
+    protected void onTagSighting(ISighting rawSighting) {
         if (mSightingListener != null) {
-            mSightingListener.onDeviceOrScanSighting(rawSighting);
+            mSightingListener.onTagSighting(rawSighting);
         }
     }
 

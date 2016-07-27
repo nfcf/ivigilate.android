@@ -248,7 +248,7 @@ public class MainActivity extends BaseActivity {
 
         getIVigilateManager().setSightingListener(new ISightingListener() {
             @Override
-            public void onDeviceOrScanSighting(final ISighting unprocessedSighting) {
+            public void onTagSighting(final ISighting unprocessedSighting) {
                 final long rxTraffic = (TrafficStats.getUidRxBytes(Process.myUid()) - rxStartTraffic) / 1000;
                 final long txTraffic = (TrafficStats.getUidTxBytes(Process.myUid()) - txStartTraffic) / 1000;
 

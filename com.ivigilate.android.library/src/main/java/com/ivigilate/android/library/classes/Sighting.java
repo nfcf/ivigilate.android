@@ -71,9 +71,7 @@ public class Sighting {
     }
 
     public String getKey() {
-        String key = null;
-        return key = beacon_mac.isEmpty() ? beacon_uid :
-                beacon_mac + beacon_uid;
+        return beacon_mac + beacon_uid;
     }
 
     public long getTimestamp() {

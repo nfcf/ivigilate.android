@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.fitness.data.BleDevice;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -35,7 +34,6 @@ import com.ivigilate.android.library.classes.NdfDeviceSighting;
 import com.ivigilate.android.library.classes.Rest;
 import com.ivigilate.android.library.classes.ScanSighting;
 import com.ivigilate.android.library.classes.Sighting;
-import com.ivigilate.android.library.interfaces.IDeviceSighting;
 import com.ivigilate.android.library.interfaces.ISighting;
 import com.ivigilate.android.library.interfaces.IVigilateApi;
 import com.ivigilate.android.library.utils.Logger;
@@ -221,6 +219,7 @@ public class IVigilateService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
         mLastKnownLocation = location;
+
         handleGPSSighting(location);
     }
 
@@ -315,42 +314,42 @@ public class IVigilateService extends Service implements
 
     private void handleSighting(ISighting unprocessedSighting, int rssi) {
         Context context = getApplicationContext();
-        String mac = null;
-        String uuid = unprocessedSighting.getUUID();
+        String beaconMac = null;
+        String tagOrGpsUid = unprocessedSighting.getUUID();
         GPSLocation location;
         int battery = 0;
         Sighting.Type type;
         JsonObject metadata = mIVigilateManager.getServiceSightingMetadata();
+
         try {
-            if (!(unprocessedSighting instanceof GPSLocation)) {
-                if (unprocessedSighting instanceof BleDeviceSighting) {
-                    BleDeviceSighting bleDeviceSighting = (BleDeviceSighting) unprocessedSighting;
-                    mac = bleDeviceSighting.getMac();
-                    battery = bleDeviceSighting.getBattery();
-                    metadata.addProperty("status", bleDeviceSighting.getStatus().getKey());
-                    Logger.d("Beacon sighted: '%s','%s',%s,%s",
-                            mac, uuid, battery, rssi);
-                } else if (unprocessedSighting instanceof NdfDeviceSighting) {
-                    Logger.d("NFC tag sighted: '%s, %s",
-                            uuid, rssi);
-                } else {
-                    Logger.d("Scan sighted: '%s'",
-                            uuid);
-                }
-                mIVigilateManager.onDeviceOrScanSighting(unprocessedSighting);
+            if (unprocessedSighting instanceof GPSLocation) {
+                mIVigilateManager.onLocationChanged((GPSLocation) unprocessedSighting);
+
+                location = (GPSLocation) unprocessedSighting;
+                type = Sighting.Type.GPS;
+
+                Logger.d("GPS coordinates sighted - Lat:%s, Long:%s'",
+                        location.getLatitude(), location.getLongitude());
+            } else {
+                mIVigilateManager.onTagSighting(unprocessedSighting);
+
                 location = mLastKnownLocation != null ? new GPSLocation(mLastKnownLocation.getLongitude(),
                         mLastKnownLocation.getLatitude(), mLastKnownLocation.getAltitude()) : null;
                 type = mIVigilateManager.getServiceSightingStateChangeInterval() > 0 ?
                         Sighting.Type.ManualClosing : Sighting.Type.AutoClosing;
-            } else {
-                location = (GPSLocation) unprocessedSighting;
-                mIVigilateManager.onLocationChanged(new GPSLocation(
-                        location.getLongitude(),
-                        location.getLatitude(),
-                        0));
-                type = Sighting.Type.GPS;
-                Logger.d("GPS coordinates sighted: '%s'",
-                        uuid);
+
+                if (unprocessedSighting instanceof BleDeviceSighting) {
+                    BleDeviceSighting bleDeviceSighting = (BleDeviceSighting) unprocessedSighting;
+                    beaconMac = bleDeviceSighting.getMac();
+                    battery = bleDeviceSighting.getBattery();
+                    metadata.addProperty("status", bleDeviceSighting.getStatus().getKey());
+                    Logger.d("Beacon sighted: '%s','%s',%s,%s",
+                            beaconMac, tagOrGpsUid, battery, rssi);
+                } else if (unprocessedSighting instanceof NdfDeviceSighting) {
+                    Logger.d("NFC tag sighted: '%s, %s", tagOrGpsUid);
+                } else {
+                    Logger.d("Scan sighted: '%s'", tagOrGpsUid);
+                }
             }
 
             if (mDequeSightings != null) { // This should never be null but just making sure...
@@ -360,10 +359,10 @@ public class IVigilateService extends Service implements
                 // Immediately decide to ignore sighting if the detector was marked as invalid...
                 boolean ignoreSighting = now - mInvalidDetectorCheckTimestamp < IGNORE_INTERVAL;
                 if (!ignoreSighting) {
-                    String detector_uuid = PhoneUtils.getDeviceUniqueId(context);
+                    String detectorUid = PhoneUtils.getDeviceUniqueId(context);
                     Sighting sighting = new Sighting(now, type,
-                            detector_uuid, 0, //The detector battery will be updated before sending the sighting
-                            mac, uuid, battery, rssi, location, metadata);
+                            detectorUid, 0, //The detector battery will be updated before sending the sighting
+                            beaconMac, tagOrGpsUid, battery, rssi, location, metadata);
 
                     Sighting previous_item = mDequeSightings.remove(sighting) ? sighting : null;
                     if (previous_item == null) {
