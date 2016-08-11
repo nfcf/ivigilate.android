@@ -14,9 +14,7 @@ public class DeviceProvisioning {
         @SerializedName("DF")
         DetectorFixed("Detector Fixed"),
         @SerializedName("DM")
-        DetectorMovable("Detector Movable"),
-        @SerializedName("DU")
-        DetectorUser("Detector User");
+        DetectorMovable("Detector Movable");
 
         private String type;
 

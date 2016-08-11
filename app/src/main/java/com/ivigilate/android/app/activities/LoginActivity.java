@@ -146,7 +146,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             @Override
             public void onClick(View v) {
                 if (toggBtn.isChecked()) {
-                    getIVigilateManager().setServiceSightingStateChangeInterval(20 * 1000);
+                    getIVigilateManager().setServiceSightingStateChangeInterval(60 * 1000);
                 }else{
                     getIVigilateManager().setServiceSightingStateChangeInterval(0);
                 }
@@ -335,7 +335,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         device.addProperty("model", PhoneUtils.getDeviceName());
         metadata.add("device", device);
 
-        DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.DeviceType.DetectorUser,
+        DeviceProvisioning deviceProvisioning = new DeviceProvisioning(DeviceProvisioning.DeviceType.DetectorMovable,
                 PhoneUtils.getDeviceUniqueId(this),
                 getIVigilateManager().getUser().email,
                 true,

@@ -148,9 +148,6 @@ public class MainActivity extends BaseActivity {
             public void success(List<RegisteredDevice> registeredDevices) {
                 for (RegisteredDevice registeredDevice : registeredDevices) {
                     switch (registeredDevice.getType()) {
-                        case "U":
-                            registeredDevice.setDeviceType(DeviceProvisioning.DeviceType.DetectorUser);
-                            break;
                         case "M":
                             registeredDevice.setDeviceType(DeviceProvisioning.DeviceType.DetectorMovable);
                             break;
@@ -429,7 +426,7 @@ public class MainActivity extends BaseActivity {
             if (StringUtils.isNullOrBlank(mCurrentDeviceSighting.getMac())) {
                 spIdentifierType.setSelection(DeviceProvisioning.IdentifierType.UUID.ordinal());
                 spIdentifierType.setEnabled(false);
-            } else if (StringUtils.isNullOrBlank(mCurrentDeviceSighting.getMac())) {
+            } else if (StringUtils.isNullOrBlank(mCurrentDeviceSighting.getUUID())) {
                 spIdentifierType.setSelection(DeviceProvisioning.IdentifierType.MAC.ordinal());
                 spIdentifierType.setEnabled(false);
             } else {
@@ -524,9 +521,6 @@ public class MainActivity extends BaseActivity {
                 break;
             case DetectorMovable:
                 typeIconId = R.drawable.dm_icon;
-                break;
-            case DetectorUser:
-                typeIconId = R.drawable.du_icon;
                 break;
             case TagFixed:
             default:
