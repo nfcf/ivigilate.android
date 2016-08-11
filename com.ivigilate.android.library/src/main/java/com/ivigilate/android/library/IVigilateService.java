@@ -218,9 +218,11 @@ public class IVigilateService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastKnownLocation = location;
+        if (location.getAccuracy() <= 50) {  // Ignore coordinates if crappy accuracy is returned...
+            mLastKnownLocation = location;
 
-        handleGPSSighting(location);
+            handleGPSSighting(location);
+        }
     }
 
     @Override
@@ -381,6 +383,8 @@ public class IVigilateService extends Service implements
                         }
 
                         synchronized (mActiveSightings) {
+                            // TODO: If MC, need to only send 1 active sighting at a time...only send another device if rssi > 1.05 * previous_rssi or something like that...
+                            // this logic is currently on the server side but it's broken as only the first rssi is sent for a sighting and that one is easily "beaten"
                             if (!ignoreSighting &&
                                     (type == Sighting.Type.AutoClosing ||
                                             type == Sighting.Type.GPS ||
